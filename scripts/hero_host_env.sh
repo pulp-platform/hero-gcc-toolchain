@@ -76,12 +76,13 @@ fi
 # export PULP_HERO_LDFLAGS="-L${HERO_SDK_DIR}/libpulp-offload/lib -lpulp-offload"
 
 # GCC PULP HERO Libgomp plugin compilation flags
-export LIBGOMP_PLUGIN_PULP_HERO_CPPFLAGS="-I${PULP_SDK_INSTALL}/include/archi/chips/bigpulp -I${PULP_SDK_INSTALL}/include -I${HERO_SDK_DIR}/libpulp-offload/inc -DPLATFORM=${PLATFORM}"
+export LIBGOMP_PLUGIN_PULP_HERO_CPPFLAGS="-O3 -Wall -g2 -shared -fPIC -I${HERO_SDK_DIR}/libpulp-offload/inc -I${PULP_SDK_INSTALL}/include/archi/chips/bigpulp  -I${PULP_SDK_INSTALL}/include -DPLATFORM=${PLATFORM}"
 export LIBGOMP_PLUGIN_PULP_HERO_LDFLAGS="-L${HERO_SDK_DIR}/libpulp-offload/lib -lpulp-offload"
 
 # MKOFFLOAD external compilation flags
 export PULP_HERO_EXTCFLAGS="-march=rv32imcxpulpv2 -D__riscv__ -DPLATFORM=${PLATFORM} -Wextra -Wall -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wundef -fdata-sections -ffunction-sections -I${PULP_SDK_INSTALL}/include/io -I${PULP_SDK_INSTALL}/include"
-export PULP_HERO_EXTLDFLAGS="${PULP_SDK_INSTALL}/lib/bigpulp-z-7045/crt0.o -nostartfiles -nostdlib -L${PULP_SDK_INSTALL}/lib/bigpulp-z-7045 -L${HERO_GCC_INSTALL_DIR}/lib -L${HERO_GCC_INSTALL_DIR}/lib/gcc/riscv32-unknown-elf/7.1.1/accel/riscv32-unknown-elf -lrt -lrtio -lrt -lgcc -lgomp -lbench"
+
+export PULP_HERO_EXTLDFLAGS="${PULP_SDK_INSTALL}/hero/hero-z-7045/rt_conf.o ${PULP_SDK_INSTALL}/lib/hero-z-7045/rt/crt0.o -nostartfiles -nostdlib -Wl,--gc-sections -T${PULP_SDK_INSTALL}/hero/hero-z-7045/test.ld -T${PULP_SDK_INSTALL}/hero/hero-z-7045/test_config.ld -L${PULP_SDK_INSTALL}/lib/hero-z-7045 -lrt -lrtio -lrt -lgcc -lgomp -lbench"
 
 return $RET
 

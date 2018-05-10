@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/bash
 # Copyright (C) 2018 ETH Zurich and University of Bologna
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,15 +14,25 @@
 # limitations under the License.
 #
 # Authors: Alessandro Capotondi, University of Bologna (alessandro.capotondi@unibo.it)
-#
-# This script build the GCC 5.2.0 toolchain for the HERO host
 
-# Setup the envioronmental variables
 source scripts/hero_accel_env.sh
 source scripts/hero_host_env.sh
 
-export HERO_GCC_INSTALL_DIRsc=$HERO_GCC_INSTALL_DIR
-export PATH=$PATH
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+RET=0
+if [ -z "${PULP_EMU_ADDR}" ]; then
+	echo "Error: PULP_EMU_ADDR environmental variables is missing!"
+	RET=1
+fi
+if [ -z "${PULP_EMU_SHARE_DIR}" ]; then
+	echo "Error: PULP_EMU_SHARE_DIR environmental variables is missing!"
+	RET=1
+fi
+if [ -z "${HERO_GCC_INSTALL_DIR}" ]; then
+	echo "Error: HERO_GCC_INSTALL_DIR environmental variables is missing!"
+	RET=1
+fi
+if [ "${RET}" -eq "0" ]; then
+	rsync -rctacvzP ${HERO_GCC_INSTALL_DIR}/* ${PULP_EMU_ADDR}:${PULP_EMU_SHARE_DIR}
+fi
 
-# That's all folks!!
+return $RET

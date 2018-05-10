@@ -1,0 +1,9 @@
+[submodule "src/binutils"]
+	path = src/binutils
+	url = https://github.com/pulp-platform/pulp-riscv-binutils-gdb.git
+[submodule "src/newlib"]
+	path = src/newlib
+	url = https://github.com/pulp-platform/pulp-riscv-newlib.git
+[submodule "src/riscv-gcc"]
+	path = src/riscv-gcc
+	url = https://github.com/pulp-platform/pulp-riscv-gcc.git

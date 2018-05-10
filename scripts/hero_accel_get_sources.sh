@@ -32,18 +32,17 @@ fi
 cd ${HERO_ACCEL_GCC_SRC_DIR}
 if [ ! -d ${HERO_ACCEL_GCC_SRC_DIR}/.git ]; then
 	git init .
-	git remote add origin git@github.com:alessandrocapotondi/pulp-riscv-gcc.git
+	git remote add origin git@github.com:pulp-platform/pulp-riscv-gcc.git
 	git fetch --all
 
 	# Get Sources
-	git checkout master
+	git checkout hero-dev
 	
 	# Download GCC prerequisites
-	${HERO_HOST_GCC_SRC_DIR}/contrib/download_prerequisites	
-else
-	# Only update software
-	git checkout master
+	${HERO_ACCEL_GCC_SRC_DIR}/contrib/download_prerequisites	
 fi
+# Update software
+git checkout hero-dev
 
 # Binutils sources
 mkdir -p ${HERO_ACCEL_SRC_DIR}/binutils
