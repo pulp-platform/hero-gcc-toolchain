@@ -47,7 +47,6 @@ EOF
 
 # Setup the envioronmental variables
 source scripts/hero_host_env.sh
-
 # Local envioronmental variables definition
 PARALLEL_MAKE=-j12
 
@@ -181,8 +180,10 @@ if [ "$compile_gcc" = true ] ; then
     mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage2
     cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage2
     ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --enable-offload-targets=riscv32-unknown-elf=${HERO_GCC_INSTALL_DIR} --with-arch=armv7-a --with-fpu=vfpv3-d16 --with-float=hard --with-mode=thumb --enable-languages=c,c++,lto --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions
+    make all-gcc ${PARALLEL_MAKE}  
+    make all-target-libstdc++-v3 ${PARALLEL_MAKE}
     make all
-    make install
+    make install ${PARALLEL_MAKE}
 fi
 
 echo "Done!"

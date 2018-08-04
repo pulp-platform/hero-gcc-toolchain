@@ -20,48 +20,20 @@
 # Setup the envioronmental variables
 source scripts/hero_accel_env.sh
 
-# Create sources folder
-if [ ! -d "${HERO_ACCEL_SRC_DIR}" ]; then
-  mkdir -p ${HERO_ACCEL_SRC_DIR}
-fi
+cd ${HERO_ACCEL_SRC_DIR}
+git submodule update --init --recursive
 
-# Get GCC sources
-if [ ! -d "${HERO_ACCEL_GCC_SRC_DIR}" ]; then
-  mkdir -p ${HERO_ACCEL_GCC_SRC_DIR}
-fi
 cd ${HERO_ACCEL_GCC_SRC_DIR}
-if [ ! -d ${HERO_ACCEL_GCC_SRC_DIR}/.git ]; then
-	git init .
-	git remote add origin git@github.com:pulp-platform/pulp-riscv-gcc.git
-	git fetch --all
-
-	# Get Sources
-	git checkout hero-dev
-	
-	# Download GCC prerequisites
-	${HERO_ACCEL_GCC_SRC_DIR}/contrib/download_prerequisites	
-fi
-# Update software
-git checkout hero-dev
+git submodule update --init --recursive
+# Download GCC prerequisites
+${HERO_ACCEL_GCC_SRC_DIR}/contrib/download_prerequisites	
 
 # Binutils sources
-mkdir -p ${HERO_ACCEL_SRC_DIR}/binutils
 cd ${HERO_ACCEL_SRC_DIR}/binutils
-if [ ! -d ${HERO_ACCEL_SRC_DIR}/binutils/.git ]; then
-	git init .
-	git remote add origin git@github.com:pulp-platform/pulp-riscv-binutils-gdb.git
-	git fetch --all
-fi
-git checkout 441e420
+git submodule update --init --recursive
 
 # Newlib sources
-mkdir -p ${HERO_ACCEL_SRC_DIR}/newlib
 cd ${HERO_ACCEL_SRC_DIR}/newlib
-if [ ! -d ${HERO_ACCEL_SRC_DIR}/newlib/.git ]; then
-	git init .
-	git remote add origin git@github.com:pulp-platform/pulp-riscv-newlib.git
-	git fetch --all
-fi
-git checkout 1e52935
+git submodule update --init --recursive
 
 # That's all folks!!

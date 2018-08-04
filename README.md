@@ -8,13 +8,24 @@ The PULP HERO Toolchain is a complete cross compiler equipped with offloading su
 ### 1. Clone the repo
 The toolchain is delivered using GIT submodule. To automatically checkout the whole sources execute the following command:
 ```
-git clone --recursive git@github.com:alessandrocapotondi/pulp-hero-gnu-gcc-toolchain.git
+git clone --recursive git@github.com:pulp-platform/pulp-hero-gnu-gcc-toolchain.git
 ```
 or if you use HTTPS
 ```
-git clone --recursive https://github.com/alessandrocapotondi/pulp-hero-gnu-gcc-toolchain.git
+git clone --recursive https://github.com/pulp-platform/pulp-hero-gnu-gcc-toolchain.git
 ```
 ### 2. Dependencies
+> TL;TR;
+> You should provide the following environmental variables:
+> ```
+> export PLATFORM="2"
+> export HERO_SDK_DIR=`realpath ../`
+> export HERO_LINUX_KERNEL_DIR=`realpath ../linux/zynqlinux/linux-xlnx`
+> source ../pulp-sdk/sourceme.sh
+> export PULP_EMU_ADDR=alessandro@zc706.eees
+> export PULP_EMU_SHARE_DIR=/hsa/pulp-hero-gnu-gcc-toolchain
+> ```
+
 Before to compile the toolchain you should satisly the following dependencies:
 * Provide the path to the HERO SDK root folder setting the environmental variable `HERO_SDK_DIR`. I.E.:
 ```
@@ -28,16 +39,15 @@ export HERO_LINUX_KERNEL_DIR=`realpath ../linux/zynqlinux/linux-xlnx`
 ```
 source ../pulp-sdk/sourceme.sh
 ```
-  PULP SDK Build procedure for HERO:
-  ```
-  git clone --recursive git@github.com:pulp-platform/pulp-sdk.git
-  cd pulp-sdk
-  source configs/hero-z-7045.sh
-  make deps all env
-  ```
-  
-  Then you will find the file `sourceme.sh` inside the folder `pulp-sdk`.
- 
+> PULP SDK Build procedure for HERO:
+> ```
+> git clone --recursive git@github.com:pulp-platform/pulp-sdk.git
+> cd pulp-sdk
+> source configs/hero-z-7045.sh
+> make deps all env
+> ```
+> Then you will find the file `sourceme.sh` inside the folder `pulp-sdk`.
+
 * Set the HERO Platform instance. I.E:
 ```
 export PLATFORM="2"
