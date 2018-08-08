@@ -19,10 +19,10 @@
 
 # Setup the envioronmental variables
 source scripts/hero_riscv32_toolchain_env.sh
-# source scripts/hero_host_env.sh
+source scripts/hero_arm_toolchain_env.sh
 
-# export HERO_GCC_INSTALL_DIR=$HERO_GCC_INSTALL_DIR
-# export PATH=$PATH
-# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+export HERO_GCC_INSTALL_DIR=$HERO_GCC_INSTALL_DIR
+export PATH=$PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 
 # That's all folks!!
