@@ -45,6 +45,11 @@ if [ ! -d "${HERO_ACCEL_GCC_BUILD_DIR}" ]; then
   mkdir -p ${HERO_ACCEL_GCC_BUILD_DIR}
 fi
 
+HERO_ACCEL_GCC_INSTALL_DIR=`realpath ${HERO_GCC_INSTALL_DIR}`
+if [ ! -d "${HERO_ACCEL_GCC_INSTALL_DIR}" ]; then
+  mkdir -p ${HERO_ACCEL_GCC_INSTALL_DIR}
+fi
+
 export PATH="${HERO_GCC_INSTALL_DIR}/bin":${PATH}
 export LD_LIBRARY_PATH="${HERO_GCC_INSTALL_DIR}/lib":${LD_LIBRARY_PATH}
 export PATH="${HERO_ACCEL_GCC_INSTALL_DIR}/bin":${PATH}
