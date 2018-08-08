@@ -80,8 +80,8 @@ get_sources() {
     cd ${HERO_ACCEL_GCC_SRC_DIR}
     git submodule update --init --recursive
     # Download GCC prerequisites
-    ${HERO_ACCEL_GCC_SRC_DIR}/contrib/download_prerequisites    
-
+    ${HERO_ACCEL_GCC_SRC_DIR}/contrib/download_prerequisites
+    
     # Binutils sources
     cd ${HERO_ACCEL_SRC_DIR}/binutils
     git submodule update --init --recursive
