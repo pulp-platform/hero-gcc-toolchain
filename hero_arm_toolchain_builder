@@ -141,7 +141,7 @@ build_glibc() {
 build_gcc_stage1() {
     mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage1
     cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage1
-    ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --with-arch=armv7-a --with-fpu=vfpv3-d16 --with-float=hard --with-mode=thumb --enable-languages=c,c++,lto --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions
+    ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --with-arch=armv7-a --with-fpu=vfpv3-d16 --with-float=hard --with-mode=thumb --enable-languages=c,c++ --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions
     make all-gcc ${PARALLEL_MAKE}
     make install-gcc
 }
