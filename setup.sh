@@ -18,18 +18,11 @@
 # This script build the GCC 5.2.0 toolchain for the HERO host
 
 # Setup the envioronmental variables
+source scripts/hero_riscv32_toolchain_env.sh
+# source scripts/hero_host_env.sh
 
-if [[ -z "${HERO_TOOLCHAIN_DIR}" ]]; then
-	export HERO_TOOLCHAIN_DIR=`realpath .`
-	source scripts/hero_accel_env.sh
-	source scripts/hero_host_env.sh
-else
-	source scripts/hero_accel_env.sh
-	source scripts/hero_host_env.sh
-fi
-
-export HERO_GCC_INSTALL_DIR=$HERO_GCC_INSTALL_DIR
-export PATH=$PATH
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+# export HERO_GCC_INSTALL_DIR=$HERO_GCC_INSTALL_DIR
+# export PATH=$PATH
+# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 
 # That's all folks!!
