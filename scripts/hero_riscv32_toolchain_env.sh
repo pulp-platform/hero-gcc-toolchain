@@ -15,7 +15,7 @@
 #
 # Authors: Alessandro Capotondi, University of Bologna (alessandro.capotondi@unibo.it)
 #
-# This environmental variables for the GCC 5.2.0 toolchain for the HERO accelerator
+# This environmental variables for the GCC 7.1.1 toolchain for the HERO accelerator
 
 HERO_ACCEL_TARGET=riscv32-unknown-elf
 HERO_BUILD_TARGET=x86_64-linux-gnu
@@ -43,11 +43,6 @@ fi
 HERO_ACCEL_GCC_BUILD_DIR=`realpath ${HERO_GCC_BUILD_DIR}/${HERO_ACCEL_TARGET}`
 if [ ! -d "${HERO_ACCEL_GCC_BUILD_DIR}" ]; then
   mkdir -p ${HERO_ACCEL_GCC_BUILD_DIR}
-fi
-
-HERO_ACCEL_GCC_INSTALL_DIR=`realpath ${HERO_GCC_INSTALL_DIR}`
-if [ ! -d "${HERO_ACCEL_GCC_INSTALL_DIR}" ]; then
-  mkdir -p ${HERO_ACCEL_GCC_INSTALL_DIR}
 fi
 
 export PATH="${HERO_GCC_INSTALL_DIR}/bin":${PATH}

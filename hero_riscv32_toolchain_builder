@@ -1,0 +1,234 @@
+#! /bin/bash
+# Copyright (C) 2018 ETH Zurich and University of Bologna
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Authors: Alessandro Capotondi, University of Bologna (alessandro.capotondi@unibo.it)
+#
+# This script build the GCC 7.1.1 toolchain for the HERO RISCV-based accelerator
+
+# Error handler
+set -e
+trap 'previous_command=$this_command; this_command=$BASH_COMMAND' DEBUG
+trap 'echo $0: ERROR "$previous_command" failed at line $LINENO' ERR
+
+if [[ ! -f "${0##*/}" ]]; then
+    echo "Error: ${0##*/} should be launched from the directory that contains it"
+    exit 1
+fi
+
+# Setup the envioronmental variables
+source scripts/hero_riscv32_toolchain_env.sh
+
+# Local envioronmental variables definition
+PARALLEL_MAKE=-j12
+
+show_help() {
+cat << EOF
+Usage: ${0##*/} [-P|-T]|[-hblcgs]] [-jdx]
+
+HERO Accelerator-side toolchain builder tool:
+----------------------------------------------------
+
+Combined commands
+----------------------------------------------------
+
+    -T : COMPILE all modules for HERO toolchain:
+              > binutils
+              > only-gcc
+              > newlib
+              > gcc as accelerator
+    -P : COMPILE all modules for PULP toolchain:
+              > binutils
+              > only-gcc
+              > newlib
+              > gcc standalone
+
+Options
+----------------------------------------------------
+    -x : REMOVE build files
+    -d : DOWNLOAD source files
+    -j : parallel make ENABLED
+
+
+Advanced commands
+----------------------------------------------------
+    -h : display this help and exit
+    -b : COMPILE binutils
+    -l : COMPILE newlib
+    -c : COMPILE only-gcc (step 1)
+    -g : COMPILE gcc as accelerator (step 2)
+    -s : COMPILE gcc standalone (step 2)    
+
+EOF
+}
+
+get_sources() {
+    cd ${HERO_ACCEL_SRC_DIR}
+    git submodule update --init --recursive
+
+    cd ${HERO_ACCEL_GCC_SRC_DIR}
+    git submodule update --init --recursive
+    # Download GCC prerequisites
+    ${HERO_ACCEL_GCC_SRC_DIR}/contrib/download_prerequisites    
+
+    # Binutils sources
+    cd ${HERO_ACCEL_SRC_DIR}/binutils
+    git submodule update --init --recursive
+
+    # Newlib sources
+    cd ${HERO_ACCEL_SRC_DIR}/newlib
+    git submodule update --init --recursive
+}
+
+build_binutils() {
+    mkdir -p ${HERO_ACCEL_GCC_BUILD_DIR}/binutils
+    cd ${HERO_ACCEL_GCC_BUILD_DIR}/binutils
+    ${HERO_ACCEL_SRC_DIR}/binutils/configure --target=${HERO_ACCEL_TARGET} --prefix=${HERO_ACCEL_GCC_INSTALL_DIR} --disable-werror
+    make all ${PARALLEL_MAKE}
+    make install
+}
+
+build_newlib() {
+    mkdir -p ${HERO_ACCEL_GCC_BUILD_DIR}/newlib
+    cd ${HERO_ACCEL_GCC_BUILD_DIR}/newlib
+    ${HERO_ACCEL_SRC_DIR}/newlib/configure --prefix=${HERO_ACCEL_GCC_INSTALL_DIR} --target=${HERO_ACCEL_TARGET} --enable-newlib-io-long-double --enable-newlib-io-long-long --enable-newlib-io-c99-formats 'CFLAGS_FOR_TARGET=-Os -mcmodel=medlow' 'target_alias=riscv32-unknown-elf'
+    make all ${PARALLEL_MAKE}
+    make install
+}
+
+build_gcc_stage1() {
+    mkdir -p ${HERO_ACCEL_GCC_BUILD_DIR}/gcc-stage1
+    cd ${HERO_ACCEL_GCC_BUILD_DIR}/gcc-stage1
+    ${HERO_ACCEL_GCC_SRC_DIR}/configure --target=${HERO_ACCEL_TARGET} --prefix=${HERO_ACCEL_GCC_INSTALL_DIR} --disable-shared --disable-threads --disable-tls --enable-languages=c,c++ --with-system-zlib --with-newlib --disable-libmudflap --disable-libssp --disable-libquadmath --disable-libgomp --disable-nls --enable-checking=yes --enable-multilib --with-abi=ilp32 --with-arch=rv32imc 'CFLAGS_FOR_TARGET=-Os -mcmodel=medlow' 'target_alias=riscv32-unknown-elf'
+    make all-gcc ${PARALLEL_MAKE}
+    make install-gcc
+}
+
+build_gcc_stage2() {
+    mkdir -p ${HERO_ACCEL_GCC_BUILD_DIR}/gcc-stage2
+    cd ${HERO_ACCEL_GCC_BUILD_DIR}/gcc-stage2
+    ${HERO_ACCEL_GCC_SRC_DIR}/configure --build=${HERO_BUILD_TARGET} --target=${HERO_ACCEL_TARGET} --prefix=${HERO_ACCEL_GCC_INSTALL_DIR} --enable-languages=c,c++,lto --disable-shared --disable-threads --with-system-zlib --enable-tls --with-newlib --with-headers=${HERO_ACCEL_GCC_INSTALL_DIR}/${HERO_ACCEL_TARGET}/include --disable-libmudflap --disable-libssp --disable-libquadmath --disable-libgomp --disable-nls --enable-checking=yes --enable-multilib --with-abi=ilp32 --with-arch=rv32imc 'CFLAGS_FOR_TARGET=-Os -mcmodel=medlow' 'target_alias=riscv32-unknown-elf'
+ 
+    make all ${PARALLEL_MAKE}
+    make install
+}
+
+build_gcc_stage2_as_accelerator() {
+    mkdir -p ${HERO_ACCEL_GCC_BUILD_DIR}/gcc-stage2
+    cd ${HERO_ACCEL_GCC_BUILD_DIR}/gcc-stage2
+    ${HERO_ACCEL_GCC_SRC_DIR}/configure --build=${HERO_BUILD_TARGET} --target=${HERO_ACCEL_TARGET}  --enable-as-accelerator-for=arm-linux-gnueabihf --prefix=${HERO_ACCEL_GCC_INSTALL_DIR} --enable-languages=c,c++,lto --disable-shared --disable-threads --with-system-zlib --enable-tls --with-newlib --with-headers=${HERO_ACCEL_GCC_INSTALL_DIR}/${HERO_ACCEL_TARGET}/include --disable-libmudflap --disable-libssp --disable-libquadmath --disable-libgomp --disable-nls --enable-checking=yes --enable-multilib --with-abi=ilp32 --with-arch=rv32imc 'CFLAGS_FOR_TARGET=-Os -mcmodel=medlow' 'target_alias=riscv32-unknown-elf'
+ 
+    make all ${PARALLEL_MAKE}
+    make install
+}
+
+#
+# Main function start HERE
+#
+
+do_get_sources=false
+do_remove_all=false
+do_compile_binutils=false
+do_compile_newlib=false
+do_compile_cc=false
+do_compile_gcc=false
+do_compile_gcc_as_accelerator=false
+
+while getopts PThblcgsjdx opt; do
+    case $opt in
+        h)
+            show_help
+            if [[ "$_" = "$0" ]]; then
+                exit 0
+            fi
+            ;;
+        b)  do_compile_binutils=true
+            ;;
+        l)  do_compile_newlib=true
+            ;;
+        c)  do_compile_cc=true
+            ;;
+        s)  do_compile_gcc=true
+            ;;
+        g)  do_compile_gcc_as_accelerator=true
+            ;;
+        x)  do_remove_all=true
+            ;;
+        d)  do_get_sources=true
+            ;;
+        j)  PARALLEL_MAKE=-j12
+            ;;
+        T)  do_compile_binutils=true
+            do_compile_cc=true
+            do_compile_newlib=true
+            do_compile_gcc_as_accelerator=true
+            do_compile_gcc=false
+            ;;
+        P)  do_compile_binutils=true
+            do_compile_cc=true
+            do_compile_newlib=true
+            do_compile_gcc_as_accelerator=false
+            do_compile_gcc=true
+            ;;
+        *)
+            show_help >&2
+            if [[ "$_" = "$0" ]]; then
+                exit 1
+            fi
+            ;;
+    esac
+done
+if [[ $# -eq 0 ]] ; then
+    show_help
+    if [[ "$_" = "$0" ]]; then
+        exit 0
+    fi
+fi
+
+# Get sources
+if [ "$do_get_sources" = true ] ; then
+    get_sources
+fi
+
+if [ "$do_remove_all" = true ] ; then
+    rm -rf ${HERO_ACCEL_GCC_BUILD_DIR}
+fi
+
+# Build binutils
+if [ "$do_compile_binutils" = true ] ; then
+    build_binutils
+fi
+
+# Build gcc (step 1)
+if [ "$do_compile_cc" = true ] ; then
+    build_gcc_stage1
+fi
+
+# Build Newlib
+if [ "$do_compile_newlib" = true ] ; then
+    build_newlib
+fi
+
+# Build GCC (step 2)
+if [ "$do_compile_gcc" = true ] ; then
+    build_gcc_stage2
+fi
+
+# Build GCC (step 2)
+if [ "$do_compile_gcc_as_accelerator" = true ] ; then
+    build_gcc_stage2_as_accelerator
+fi
+
+echo "Done!"
+# That's all folks!!
