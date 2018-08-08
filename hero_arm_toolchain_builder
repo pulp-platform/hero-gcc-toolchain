@@ -1,0 +1,264 @@
+#!/bin/bash
+# Copyright (C) 2018 ETH Zurich and University of Bologna
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Authors: Alessandro Capotondi, University of Bologna (alessandro.capotondi@unibo.it)
+#
+# This script build the GCC 7.1.1 toolchain for the HERO host
+
+# Error handler
+set -e
+trap 'previous_command=$this_command; this_command=$BASH_COMMAND' DEBUG
+trap 'echo $0: ERROR "$previous_command" failed at line $LINENO' ERR
+
+if [[ ! -f "${0##*/}" ]]; then
+    echo "Error: ${0##*/} should be launched from the directory that contains it"
+    exit 1
+fi
+
+# Setup the envioronmental variables
+source scripts/hero_arm_toolchain_env.sh
+
+# Local envioronmental variables definition
+PARALLEL_MAKE=
+
+show_help() {
+cat << EOF
+Usage: ${0##*/} [-P|-T]|[-hblcgs]] [-jdx]
+
+HERO Host-side toolchain builder tool:
+----------------------------------------------------
+
+Combined commands
+----------------------------------------------------
+
+    -T : COMPILE all modules for HERO toolchain:
+              > binutils
+              > only-gcc
+              > glibc
+              > gcc with accelerator
+    -P : COMPILE all modules for ARM-only toolchain:
+              > binutils
+              > only-gcc
+              > glibc
+              > gcc standalone
+
+Options
+----------------------------------------------------
+    -x : REMOVE build files
+    -d : DOWNLOAD source files
+    -j : parallel make ENABLED
+
+
+Advanced commands
+----------------------------------------------------
+    -h : display this help and exit
+    -b : COMPILE binutils
+    -l : COMPILE glibc
+    -c : COMPILE only-gcc (step 1)
+    -g : COMPILE gcc with accelerator (step 2)
+    -s : COMPILE gcc standalone (step 2)    
+
+EOF
+}
+
+get_sources() {
+    cd ${HERO_HOST_SRC_DIR}
+    git submodule update --init --recursive
+
+    cd ${HERO_HOST_GCC_SRC_DIR}
+    git submodule update --init --recursive
+
+    # Binutils sources
+    cd ${HERO_HOST_SRC_DIR}/binutils
+    git submodule update --init --recursive
+
+    # Get Kernel Sources
+    # wget -nc https://www.kernel.org/pub/linux/kernel/v3.x/$LINUX_KERNEL_VERSION.tar.xz
+
+    # Get Glibc
+    cd ${HERO_HOST_SRC_DIR} 
+    rm -rf $HERO_HOST_GLIBC
+    rm -rf $HERO_HOST_GLIBC.tar.xz
+    wget -nc https://ftp.gnu.org/gnu/glibc/$HERO_HOST_GLIBC.tar.xz
+    for f in *.tar*; do tar xfk $f; done
+    rm -rf $HERO_HOST_GLIBC.tar.xz
+}
+
+build_binutils() {
+    mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/binutils
+    cd ${HERO_HOST_GCC_BUILD_DIR}/binutils
+    ${HERO_HOST_SRC_DIR}/binutils/configure --target=${HERO_HOST_TARGET} --prefix=${HERO_GCC_INSTALL_DIR} --disable-multilib --disable-nls --disable-werror
+    make all ${PARALLEL_MAKE}
+    make install
+}
+
+build_glibc() {
+    cd $HERO_HOST_LINUX_KERNEL_DIR
+    make ARCH=${HERO_HOST_LINUX_ARCH} INSTALL_HDR_PATH=${HERO_GCC_INSTALL_DIR}/${HERO_HOST_TARGET} headers_install 
+
+    export LD_LIBRARY_PATH_BACKUP=$LD_LIBRARY_PATH
+    unset LD_LIBRARY_PATH
+
+    # Standard C Library Headers and Startup Files
+    mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/glibc
+    cd ${HERO_HOST_GCC_BUILD_DIR}/glibc
+
+    ${HERO_HOST_SRC_DIR}/${HERO_HOST_GLIBC}/configure --prefix=${HERO_GCC_INSTALL_DIR}/${HERO_HOST_TARGET} --build=$MACHTYPE --host=${HERO_HOST_TARGET} --target=${HERO_HOST_TARGET} --with-headers=${HERO_GCC_INSTALL_DIR}/${HERO_HOST_TARGET}/include --disable-multilib --disable-nls --disable-werror libc_cv_forced_unwind=yes
+    make install-bootstrap-headers=yes install-headers
+    make $PARALLEL_MAKE csu/subdir_lib
+    install csu/crt1.o csu/crti.o csu/crtn.o ${HERO_GCC_INSTALL_DIR}/${HERO_HOST_TARGET}/lib
+    ${HERO_HOST_TARGET}-gcc -nostdlib -nostartfiles -shared -x c /dev/null -o ${HERO_GCC_INSTALL_DIR}/${HERO_HOST_TARGET}/lib/libc.so
+    touch ${HERO_GCC_INSTALL_DIR}/${HERO_HOST_TARGET}/include/gnu/stubs.h
+    cd ..
+
+    # Compiler Support Library
+    cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage1
+    make all-target-libgcc ${PARALLEL_MAKE}
+    make install-target-libgcc
+
+    # Step 6. Standard C Library & the rest of Glibc
+    cd ${HERO_HOST_GCC_BUILD_DIR}/glibc
+    make ${PARALLEL_MAKE}
+    make install
+    cd ..
+
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH_BACKUP
+    unset LD_LIBRARY_PATH_BACKUP
+}
+
+build_gcc_stage1() {
+    mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage1
+    cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage1
+    ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --with-arch=armv7-a --with-fpu=vfpv3-d16 --with-float=hard --with-mode=thumb --enable-languages=c,c++,lto --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions
+    make all-gcc ${PARALLEL_MAKE}
+    make install-gcc
+}
+
+build_gcc_stage2() {
+        mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage2
+    cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage2
+    ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --with-arch=armv7-a --with-fpu=vfpv3-d16 --with-float=hard --with-mode=thumb --enable-languages=c,c++,lto --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions
+    make all ${PARALLEL_MAKE}
+    make install ${PARALLEL_MAKE}
+}
+
+build_gcc_stage2_with_accelerator() {
+    mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage2
+    cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage2
+    ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --enable-offload-targets=riscv32-unknown-elf=${HERO_GCC_INSTALL_DIR} --with-arch=armv7-a --with-fpu=vfpv3-d16 --with-float=hard --with-mode=thumb --enable-languages=c,c++,lto --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions
+    make all-gcc ${PARALLEL_MAKE}  
+    make all-target-libstdc++-v3 ${PARALLEL_MAKE}
+    make all
+    make install ${PARALLEL_MAKE}
+}
+
+#
+# Main function start HERE
+#
+
+do_get_sources=false
+do_remove_all=false
+do_compile_binutils=false
+do_compile_glibc=false
+do_compile_cc=false
+do_compile_gcc=false
+do_compile_gcc_with_accelerator=false
+
+while getopts PThblcgsjdx opt; do
+    case $opt in
+        h)
+            show_help
+            if [[ "$_" = "$0" ]]; then
+                exit 0
+            fi
+            ;;
+        b)  do_compile_binutils=true
+            ;;
+        l)  do_compile_glibc=true
+            ;;
+        c)  do_compile_cc=true
+            ;;
+        s)  do_compile_gcc=true
+            ;;
+        g)  do_compile_gcc_with_accelerator=true
+            ;;
+        x)  do_remove_all=true
+            ;;
+        d)  do_get_sources=true
+            ;;
+        j)  PARALLEL_MAKE=-j12
+            ;;
+        T)  do_compile_binutils=true
+            do_compile_cc=true
+            do_compile_glibc=true
+            do_compile_gcc_with_accelerator=true
+            do_compile_gcc=false
+            ;;
+        P)  do_compile_binutils=true
+            do_compile_cc=true
+            do_compile_glibc=true
+            do_compile_gcc_with_accelerator=false
+            do_compile_gcc=true
+            ;;
+        *)
+            show_help >&2
+            if [[ "$_" = "$0" ]]; then
+                exit 1
+            fi
+            ;;
+    esac
+done
+if [[ $# -eq 0 ]] ; then
+    show_help
+    if [[ "$_" = "$0" ]]; then
+        exit 0
+    fi
+fi
+
+# Get sources
+if [ "$do_get_sources" = true ] ; then
+    get_sources
+fi
+
+if [ "$do_remove_all" = true ] ; then
+    rm -rf ${HERO_HOST_GCC_BUILD_DIR}
+fi
+
+# Build binutils
+if [ "$do_compile_binutils" = true ] ; then
+    build_binutils
+fi
+
+# Build gcc (step 1)
+if [ "$do_compile_cc" = true ] ; then
+    build_gcc_stage1
+fi
+
+if [ "$do_compile_glibc" = true ] ; then
+    build_glibc
+fi
+
+# Build GCC (step 2)
+if [ "$do_compile_gcc" = true ] ; then
+    build_gcc_stage2
+fi
+
+# Build GCC (step 2)
+if [ "$do_compile_gcc_as_accelerator" = true ] ; then
+    build_gcc_stage2_with_accelerator
+fi
+
+echo "Done!"
+# That's all folks!!
