@@ -48,7 +48,7 @@ Combined commands
               > only-gcc
               > newlib
               > gcc as accelerator
-    -P : COMPILE all modules for PULP toolchain:
+    -P : COMPILE all modules for PULP-only toolchain:
               > binutils
               > only-gcc
               > newlib
