@@ -124,9 +124,9 @@ build_gcc_stage2() {
     make install
 }
 
-build_gcc_stage2_as_accelerator() {
-    mkdir -p ${HERO_ACCEL_GCC_BUILD_DIR}/gcc-stage2
-    cd ${HERO_ACCEL_GCC_BUILD_DIR}/gcc-stage2
+build_gcc_stage3() {
+    mkdir -p ${HERO_ACCEL_GCC_BUILD_DIR}/gcc-stage3
+    cd ${HERO_ACCEL_GCC_BUILD_DIR}/gcc-stage3
     ${HERO_ACCEL_GCC_SRC_DIR}/configure --build=${HERO_BUILD_TARGET} --target=${HERO_ACCEL_TARGET}  --enable-as-accelerator-for=arm-linux-gnueabihf --prefix=${HERO_ACCEL_GCC_INSTALL_DIR} --enable-languages=c,c++,lto --disable-shared --disable-threads --with-system-zlib --enable-tls --with-newlib --with-headers=${HERO_ACCEL_GCC_INSTALL_DIR}/${HERO_ACCEL_TARGET}/include --disable-libmudflap --disable-libssp --disable-libquadmath --disable-libgomp --disable-nls --enable-checking=yes --enable-multilib --with-abi=ilp32 --with-arch=rv32imc 'CFLAGS_FOR_TARGET=-Os -mcmodel=medlow' 'target_alias=riscv32-unknown-elf'
  
     make all ${PARALLEL_MAKE}
@@ -225,9 +225,9 @@ if [ "$do_compile_gcc" = true ] ; then
     build_gcc_stage2
 fi
 
-# Build GCC (step 2)
+# Build GCC as accelerator (step 3)
 if [ "$do_compile_gcc_as_accelerator" = true ] ; then
-    build_gcc_stage2_as_accelerator
+    build_gcc_stage3
 fi
 
 echo "Done!"

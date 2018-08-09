@@ -156,9 +156,9 @@ build_gcc_stage2() {
     make install ${PARALLEL_MAKE}
 }
 
-build_gcc_stage2_with_accelerator() {
-    mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage2
-    cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage2
+build_gcc_stage3() {
+    mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage3
+    cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage3
     ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --enable-offload-targets=riscv32-unknown-elf=${HERO_GCC_INSTALL_DIR} --with-arch=armv7-a --with-fpu=vfpv3-d16 --with-float=hard --with-mode=thumb --enable-languages=c,c++,lto --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions
     make all-gcc ${PARALLEL_MAKE}  
     make all-target-libstdc++-v3 ${PARALLEL_MAKE}
@@ -257,9 +257,9 @@ if [ "$do_compile_gcc" = true ] ; then
     build_gcc_stage2
 fi
 
-# Build GCC (step 2)
+# Build GCC (step 3s)
 if [ "$do_compile_gcc_as_accelerator" = true ] ; then
-    build_gcc_stage2_with_accelerator
+    build_gcc_stage3
 fi
 
 echo "Done!"
