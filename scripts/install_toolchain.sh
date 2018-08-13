@@ -15,8 +15,8 @@
 #
 # Authors: Alessandro Capotondi, University of Bologna (alessandro.capotondi@unibo.it)
 
-source scripts/hero_accel_env.sh
-source scripts/hero_host_env.sh
+source scripts/hero_arm_toolchain_env.sh
+source scripts/hero_riscv32_toolchain_env.sh
 
 RET=0
 if [ -z "${PULP_EMU_ADDR}" ]; then
@@ -35,4 +35,4 @@ if [ "${RET}" -eq "0" ]; then
 	rsync -rctacvzP ${HERO_GCC_INSTALL_DIR}/* ${PULP_EMU_ADDR}:${PULP_EMU_SHARE_DIR}
 fi
 
-return $RET
+exit $RET
