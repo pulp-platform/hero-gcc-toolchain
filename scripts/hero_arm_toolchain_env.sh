@@ -21,7 +21,7 @@ HERO_HOST_TARGET=arm-linux-gnueabihf
 HERO_BUILD_TARGET=x86_64-linux-gnu
 HERO_HOST_LINUX_ARCH=arm
 HERO_HOST_GLIBC=glibc-2.21
-HERO_HOST_FPU_CONFIG="--with-fpu=vfpv3-d16 --with-float=hard"
+HERO_HOST_FPU_CONFIG="--with-fpu=neon-fp16 --with-float=hard"
 
 RET=0
 
