@@ -93,7 +93,11 @@ get_sources() {
     cd ${HERO_HOST_SRC_DIR} 
     rm -rf $HERO_HOST_GLIBC
     rm -rf $HERO_HOST_GLIBC.tar.xz
-    wget -nc https://ftp.gnu.org/gnu/glibc/$HERO_HOST_GLIBC.tar.xz
+    {
+        wget --tries=1 --timeout=60 -nc http://mirror.switch.ch/ftp/mirror/gnu/glibc/$HERO_HOST_GLIBC.tar.xz
+    } || {
+        wget -nc https://ftp.gnu.org/gnu/glibc/$HERO_HOST_GLIBC.tar.xz
+    }
     for f in *.tar*; do tar xfk $f; done
     rm -rf $HERO_HOST_GLIBC.tar.xz
 }
