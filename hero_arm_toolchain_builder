@@ -121,7 +121,7 @@ build_glibc() {
     mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/glibc
     cd ${HERO_HOST_GCC_BUILD_DIR}/glibc
 
-    ${HERO_HOST_SRC_DIR}/${HERO_HOST_GLIBC}/configure --prefix=${HERO_GCC_INSTALL_DIR}/${HERO_HOST_TARGET} --build=$MACHTYPE --host=${HERO_HOST_TARGET} --target=${HERO_HOST_TARGET} --with-headers=${HERO_GCC_INSTALL_DIR}/${HERO_HOST_TARGET}/include --disable-multilib --disable-nls --disable-werror libc_cv_forced_unwind=yes
+    ${HERO_HOST_SRC_DIR}/${HERO_HOST_GLIBC}/configure --prefix=${HERO_GCC_INSTALL_DIR}/${HERO_HOST_TARGET} --build=$MACHTYPE --host=${HERO_HOST_TARGET} --target=${HERO_HOST_TARGET} --with-headers=${HERO_GCC_INSTALL_DIR}/${HERO_HOST_TARGET}/include --disable-multilib --disable-nls --disable-werror libc_cv_forced_unwind=yes --enable-obsolete-rpc
     make install-bootstrap-headers=yes install-headers
     make $PARALLEL_MAKE csu/subdir_lib
     install csu/crt1.o csu/crti.o csu/crtn.o ${HERO_GCC_INSTALL_DIR}/${HERO_HOST_TARGET}/lib
