@@ -262,7 +262,7 @@ if [ "$do_compile_gcc" = true ] ; then
 fi
 
 # Build GCC (step 3s)
-if [ "$do_compile_gcc_as_accelerator" = true ] ; then
+if [ "$do_compile_gcc_with_accelerator" = true ] ; then
     build_gcc_stage3
 fi
 
