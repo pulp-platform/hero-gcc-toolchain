@@ -22,8 +22,8 @@ git clone --recursive https://github.com/pulp-platform/pulp-hero-gnu-gcc-toolcha
 > export HERO_SDK_DIR=`realpath ../`
 > export HERO_LINUX_KERNEL_DIR=`realpath ../linux/zynqlinux/linux-xlnx`
 > source ../pulp-sdk/sourceme.sh
-> export PULP_EMU_ADDR=alessandro@zc706.eees
-> export PULP_EMU_SHARE_DIR=/hsa/pulp-hero-gnu-gcc-toolchain
+> export HERO_TARGET_HOST=alessandro@zc706.eees
+> export HERO_TARGET_PATH=/hsa/pulp-hero-gnu-gcc-toolchain
 > ```
 
 Before to compile the toolchain you should satisly the following dependencies:
@@ -54,8 +54,8 @@ export PLATFORM="2"
 ```
 * (optional) Finally setup the proper installation path. I.E.:
 ```
-export PULP_EMU_ADDR=alessandro@zc706.eees
-export PULP_EMU_SHARE_DIR=/hsa/pulp-hero-gnu-gcc-toolchain
+export HERO_TARGET_HOST=alessandro@zc706.eees
+export HERO_TARGET_PATH=/hsa/pulp-hero-gnu-gcc-toolchain
 ```
 
 * Source the setup script:

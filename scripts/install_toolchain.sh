@@ -19,20 +19,20 @@ source scripts/hero_arm_toolchain_env.sh
 source scripts/hero_riscv32_toolchain_env.sh
 
 RET=0
-if [ -z "${PULP_EMU_ADDR}" ]; then
-	echo "Error: PULP_EMU_ADDR environmental variables is missing!"
-	RET=1
+if [ -z "${HERO_TARGET_HOST}" ]; then
+    echo "Error: HERO_TARGET_HOST environmental variables is missing!"
+    RET=1
 fi
-if [ -z "${PULP_EMU_SHARE_DIR}" ]; then
-	echo "Error: PULP_EMU_SHARE_DIR environmental variables is missing!"
-	RET=1
+if [ -z "${HERO_TARGET_PATH}" ]; then
+    echo "Error: HERO_TARGET_PATH environmental variables is missing!"
+    RET=1
 fi
 if [ -z "${HERO_GCC_INSTALL_DIR}" ]; then
-	echo "Error: HERO_GCC_INSTALL_DIR environmental variables is missing!"
-	RET=1
+    echo "Error: HERO_GCC_INSTALL_DIR environmental variables is missing!"
+    RET=1
 fi
 if [ "${RET}" -eq "0" ]; then
-	rsync -rctacvzP ${HERO_GCC_INSTALL_DIR}/* ${PULP_EMU_ADDR}:${PULP_EMU_SHARE_DIR}
+    rsync -rctacvP ${HERO_GCC_INSTALL_DIR}/arm-linux-gnueabihf/lib/libgomp* ${HERO_TARGET_HOST}:${HERO_TARGET_PATH_LIB}/.
 fi
 
 exit $RET
