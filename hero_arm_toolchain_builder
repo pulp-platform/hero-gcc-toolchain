@@ -150,14 +150,24 @@ build_gcc_stage1() {
     ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --with-arch=armv7-a ${HERO_HOST_FPU_CONFIG} --with-mode=thumb --enable-languages=c,c++ --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions
     make all-gcc ${PARALLEL_MAKE}
     make install-gcc
+
+    if [ $? -ne 0 ]; then
+        echo "ERROR: build_gcc_stage1 failed, aborting now."
+        exit 1
+    fi
 }
 
 build_gcc_stage2() {
-        mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage2
+    mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage2
     cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage2
     ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --with-arch=armv7-a ${HERO_HOST_FPU_CONFIG} --with-mode=thumb --enable-languages=c,c++,lto --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions
     make all ${PARALLEL_MAKE}
     make install ${PARALLEL_MAKE}
+
+    if [ $? -ne 0 ]; then
+        echo "ERROR: build_gcc_stage2 failed, aborting now."
+        exit 1
+    fi
 }
 
 build_gcc_stage3() {
@@ -168,6 +178,11 @@ build_gcc_stage3() {
     make all-target-libstdc++-v3 ${PARALLEL_MAKE}
     make all
     make install ${PARALLEL_MAKE}
+
+    if [ $? -ne 0 ]; then
+        echo "ERROR: build_gcc_stage3 failed, aborting now."
+        exit 1
+    fi
 }
 
 #
