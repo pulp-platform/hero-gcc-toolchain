@@ -219,7 +219,7 @@ while getopts PThblcgsjdx opt; do
             ;;
         d)  do_get_sources=true
             ;;
-        j)  PARALLEL_MAKE=-j12
+        j)  PARALLEL_MAKE=-j`nproc`
             ;;
         T)  do_compile_binutils=true
             do_compile_cc=true

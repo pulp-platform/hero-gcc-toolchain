@@ -31,7 +31,7 @@ fi
 source scripts/hero_riscv32_toolchain_env.sh
 
 # Local envioronmental variables definition
-PARALLEL_MAKE=-j12
+PARALLEL_MAKE=-j`nproc`
 
 show_help() {
 cat << EOF
