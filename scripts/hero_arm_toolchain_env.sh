@@ -62,8 +62,8 @@ export LD_LIBRARY_PATH="${HERO_GCC_INSTALL_DIR}/lib":${LD_LIBRARY_PATH}
 if [ -z "${HERO_SDK_DIR}" ]; then
 
 # GCC PULP HERO Libgomp plugin compilation flags
-export LIBGOMP_PLUGIN_PULP_HERO_CPPFLAGS="-O3 -Wall -g2 -shared -fPIC -I${HERO_SDK_DIR}/libpulp-offload/inc -I${PULP_SDK_INSTALL}/include/archi/chips/bigpulp  -I${PULP_SDK_INSTALL}/include -DPLATFORM=${PLATFORM}"
-export LIBGOMP_PLUGIN_PULP_HERO_LDFLAGS="-L${HERO_SDK_DIR}/libpulp-offload/lib -lpulp-offload -lstdc++"
+export LIBGOMP_PLUGIN_PULP_HERO_CPPFLAGS="-O3 -Wall -g2 -shared -fPIC -I${HERO_SDK_DIR}/libpulp/inc -I${PULP_SDK_INSTALL}/include/archi/chips/bigpulp  -I${PULP_SDK_INSTALL}/include -DPLATFORM=${PLATFORM}"
+export LIBGOMP_PLUGIN_PULP_HERO_LDFLAGS="-L${HERO_SDK_DIR}/libpulp/lib -lpulp -lstdc++"
 
 # HERO MKOFFLOAD external compilation flags
 export PULP_HERO_EXTCFLAGS="-march=rv32imcxpulpv2 -D__riscv__ -DPLATFORM=${PLATFORM} -Wextra -Wall -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wundef -fdata-sections -ffunction-sections -I${PULP_SDK_INSTALL}/include/io -I${PULP_SDK_INSTALL}/include"
