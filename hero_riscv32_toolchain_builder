@@ -31,7 +31,7 @@ fi
 source scripts/hero_riscv32_toolchain_env.sh
 
 # Local envioronmental variables definition
-PARALLEL_MAKE=-j`nproc`
+PARALLEL_MAKE=
 
 show_help() {
 cat << EOF
@@ -67,16 +67,13 @@ Advanced commands
     -b : COMPILE binutils
     -l : COMPILE newlib
     -c : COMPILE only-gcc (step 1)
-    -g : COMPILE gcc as accelerator (step 2)
+    -g : COMPILE gcc as accelerator (step 3)
     -s : COMPILE gcc standalone (step 2)    
 
 EOF
 }
 
 get_sources() {
-    cd ${HERO_ACCEL_SRC_DIR}
-    git submodule update --init --recursive
-
     cd ${HERO_ACCEL_GCC_SRC_DIR}
     git submodule update --init --recursive
     # Download GCC prerequisites
@@ -167,7 +164,7 @@ while getopts PThblcgsjdx opt; do
             ;;
         d)  do_get_sources=true
             ;;
-        j)  PARALLEL_MAKE=-j12
+        j)  PARALLEL_MAKE=-j`nproc`
             ;;
         T)  do_compile_binutils=true
             do_compile_cc=true
@@ -210,7 +207,7 @@ if [ "$do_compile_binutils" = true ] ; then
     build_binutils
 fi
 
-# Build gcc (step 1)
+# Build gcc (stage 1)
 if [ "$do_compile_cc" = true ] ; then
     build_gcc_stage1
 fi
@@ -220,12 +217,12 @@ if [ "$do_compile_newlib" = true ] ; then
     build_newlib
 fi
 
-# Build GCC (step 2)
+# Build GCC (stage 2)
 if [ "$do_compile_gcc" = true ] ; then
     build_gcc_stage2
 fi
 
-# Build GCC as accelerator (step 3)
+# Build GCC as accelerator (stage 3)
 if [ "$do_compile_gcc_as_accelerator" = true ] ; then
     build_gcc_stage3
 fi

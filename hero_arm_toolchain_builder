@@ -66,17 +66,14 @@ Advanced commands
     -h : display this help and exit
     -b : COMPILE binutils
     -l : COMPILE glibc
-    -c : COMPILE only-gcc (step 1)
-    -g : COMPILE gcc with accelerator (step 2)
-    -s : COMPILE gcc standalone (step 2)    
+    -c : COMPILE only-gcc (stage 1)
+    -g : COMPILE gcc with accelerator (stage 3)
+    -s : COMPILE gcc standalone (stage 2)    
 
 EOF
 }
 
 get_sources() {
-    cd ${HERO_HOST_SRC_DIR}
-    git submodule update --init --recursive
-
     cd ${HERO_HOST_GCC_SRC_DIR}
     git submodule update --init --recursive
     # Download GCC prerequisites
@@ -147,9 +144,9 @@ build_glibc() {
 build_gcc_stage1() {
     mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage1
     cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage1
-    ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --with-arch=armv7-a ${HERO_HOST_FPU_CONFIG} --with-mode=thumb --enable-languages=c,c++ --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions
+    ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --with-arch=armv7-a ${HERO_HOST_FPU_CONFIG} --with-mode=thumb --enable-languages=c --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions
     make all-gcc ${PARALLEL_MAKE}
-    make install-gcc
+    make install-gcc ${PARALLEL_MAKE}
 
     if [ $? -ne 0 ]; then
         echo "ERROR: build_gcc_stage1 failed, aborting now."
@@ -176,7 +173,7 @@ build_gcc_stage3() {
     ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --enable-offload-targets=riscv32-unknown-elf=${HERO_GCC_INSTALL_DIR} --with-arch=armv7-a ${HERO_HOST_FPU_CONFIG} --with-mode=thumb --enable-languages=c,c++,lto --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions
     make all-gcc ${PARALLEL_MAKE}  
     make all-target-libstdc++-v3 ${PARALLEL_MAKE}
-    make all
+    make all ${PARALLEL_MAKE}
     make install ${PARALLEL_MAKE}
 
     if [ $? -ne 0 ]; then
@@ -262,7 +259,7 @@ if [ "$do_compile_binutils" = true ] ; then
     build_binutils
 fi
 
-# Build gcc (step 1)
+# Build gcc (stage 1)
 if [ "$do_compile_cc" = true ] ; then
     build_gcc_stage1
 fi
@@ -271,12 +268,12 @@ if [ "$do_compile_glibc" = true ] ; then
     build_glibc
 fi
 
-# Build GCC (step 2)
+# Build GCC (stage 2)
 if [ "$do_compile_gcc" = true ] ; then
     build_gcc_stage2
 fi
 
-# Build GCC (step 3s)
+# Build GCC (stage 3)
 if [ "$do_compile_gcc_with_accelerator" = true ] ; then
     build_gcc_stage3
 fi

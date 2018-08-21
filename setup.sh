@@ -15,7 +15,7 @@
 #
 # Authors: Alessandro Capotondi, University of Bologna (alessandro.capotondi@unibo.it)
 #
-# This script build the GCC 5.2.0 toolchain for the HERO host
+# This script build the GCC 7.1.1 toolchain for the HERO host
 
 # Setup the envioronmental variables
 source scripts/hero_riscv32_toolchain_env.sh

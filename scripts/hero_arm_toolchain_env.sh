@@ -56,19 +56,28 @@ if [ -z "${HERO_LINUX_KERNEL_DIR}" ]; then
 fi
 HERO_HOST_LINUX_KERNEL_DIR=${HERO_LINUX_KERNEL_DIR}
 
-export PATH="${HERO_GCC_INSTALL_DIR}/bin":${PATH}
-export LD_LIBRARY_PATH="${HERO_GCC_INSTALL_DIR}/lib":${LD_LIBRARY_PATH}
+if [ ! -z "${HERO_SDK_DIR}" ]; then
 
-if [ -z "${HERO_SDK_DIR}" ]; then
+	# GCC PULP HERO Libgomp plugin compilation flags
+	export LIBGOMP_PLUGIN_PULP_HERO_CPPFLAGS="-O3 -Wall -g2 -shared -fPIC -I${HERO_SUPPORT_DIR}/libpulp/inc -I${PULP_SDK_INSTALL}/include/archi/chips/bigpulp  -I${PULP_SDK_INSTALL}/include -DPLATFORM=${PLATFORM}"
+	export LIBGOMP_PLUGIN_PULP_HERO_LDFLAGS="-L${HERO_SUPPORT_DIR}/libpulp/lib -lpulp -lstdc++"
 
-# GCC PULP HERO Libgomp plugin compilation flags
-export LIBGOMP_PLUGIN_PULP_HERO_CPPFLAGS="-O3 -Wall -g2 -shared -fPIC -I${HERO_SDK_DIR}/libpulp/inc -I${PULP_SDK_INSTALL}/include/archi/chips/bigpulp  -I${PULP_SDK_INSTALL}/include -DPLATFORM=${PLATFORM}"
-export LIBGOMP_PLUGIN_PULP_HERO_LDFLAGS="-L${HERO_SDK_DIR}/libpulp/lib -lpulp -lstdc++"
+	# HERO MKOFFLOAD external compilation flags
+	export PULP_HERO_EXTCFLAGS="-march=rv32imcxpulpv2 -D__riscv__ -DPLATFORM=${PLATFORM} -Wextra -Wall -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wundef -fdata-sections -ffunction-sections -I${PULP_SDK_INSTALL}/include/io -I${PULP_SDK_INSTALL}/include"
 
-# HERO MKOFFLOAD external compilation flags
-export PULP_HERO_EXTCFLAGS="-march=rv32imcxpulpv2 -D__riscv__ -DPLATFORM=${PLATFORM} -Wextra -Wall -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wundef -fdata-sections -ffunction-sections -I${PULP_SDK_INSTALL}/include/io -I${PULP_SDK_INSTALL}/include"
+	export PULP_HERO_EXTLDFLAGS="${PULP_SDK_INSTALL}/hero/hero-z-7045/rt_conf.o ${PULP_SDK_INSTALL}/lib/hero-z-7045/rt/crt0.o -nostartfiles -nostdlib -Wl,--gc-sections -T${PULP_SDK_INSTALL}/hero/hero-z-7045/test.ld -T${PULP_SDK_INSTALL}/hero/hero-z-7045/test_config.ld -L${PULP_SDK_INSTALL}/lib/hero-z-7045 -lrt -lrtio -lrt -lgcc -lgomp -lbench -lm"
+fi
 
-export PULP_HERO_EXTLDFLAGS="${PULP_SDK_INSTALL}/hero/hero-z-7045/rt_conf.o ${PULP_SDK_INSTALL}/lib/hero-z-7045/rt/crt0.o -nostartfiles -nostdlib -Wl,--gc-sections -T${PULP_SDK_INSTALL}/hero/hero-z-7045/test.ld -T${PULP_SDK_INSTALL}/hero/hero-z-7045/test_config.ld -L${PULP_SDK_INSTALL}/lib/hero-z-7045 -lrt -lrtio -lrt -lgcc -lgomp -lbench -lm"
+if [[ ":$PATH:" == *":${HERO_GCC_INSTALL_DIR}/bin:"* ]]; then
+  echo "Your $PATH is correctly set. Skipping installation."
+else
+  export PATH="${HERO_GCC_INSTALL_DIR}/bin":${PATH}
+fi
+
+if [[ ":$LD_LIBRARY_PATH:" == *":${HERO_GCC_INSTALL_DIR}/lib:"* ]]; then
+  echo "Your $LD_LIBRARY_PATH is correctly set. Skipping installation."
+else
+  export LD_LIBRARY_PATH="${HERO_GCC_INSTALL_DIR}/lib":${LD_LIBRARY_PATH}
 fi
 
 return $RET
