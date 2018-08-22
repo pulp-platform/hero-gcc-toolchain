@@ -32,6 +32,8 @@ source scripts/hero_arm_toolchain_env.sh
 
 # Local envioronmental variables definition
 PARALLEL_MAKE=
+SYSROOT=${HERO_GCC_INSTALL_DIR}/${HERO_HOST_TARGET}/libc
+
 
 show_help() {
 cat << EOF
@@ -102,15 +104,12 @@ get_sources() {
 build_binutils() {
     mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/binutils
     cd ${HERO_HOST_GCC_BUILD_DIR}/binutils
-    ${HERO_HOST_SRC_DIR}/binutils/configure --target=${HERO_HOST_TARGET} --prefix=${HERO_GCC_INSTALL_DIR} --disable-multilib --disable-nls --disable-werror
-    make all ${PARALLEL_MAKE}
+   # ${HERO_HOST_SRC_DIR}/binutils/configure --target=${HERO_HOST_TARGET} --prefix=${HERO_GCC_INSTALL_DIR} --disable-multilib --disable-nls --disable-werror --with-sysroot=${SYSROOT}
+   # make all ${PARALLEL_MAKE}
     make install
 }
 
 build_glibc() {
-    cd $HERO_HOST_LINUX_KERNEL_DIR
-    make ARCH=${HERO_HOST_LINUX_ARCH} INSTALL_HDR_PATH=${HERO_GCC_INSTALL_DIR}/${HERO_HOST_TARGET} headers_install 
-
     export LD_LIBRARY_PATH_BACKUP=$LD_LIBRARY_PATH
     unset LD_LIBRARY_PATH
 
@@ -118,23 +117,25 @@ build_glibc() {
     mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/glibc
     cd ${HERO_HOST_GCC_BUILD_DIR}/glibc
 
-    ${HERO_HOST_SRC_DIR}/${HERO_HOST_GLIBC}/configure --prefix=${HERO_GCC_INSTALL_DIR}/${HERO_HOST_TARGET} --build=$MACHTYPE --host=${HERO_HOST_TARGET} --target=${HERO_HOST_TARGET} --with-headers=${HERO_GCC_INSTALL_DIR}/${HERO_HOST_TARGET}/include --disable-multilib --disable-nls --disable-werror libc_cv_forced_unwind=yes --enable-obsolete-rpc
-    make install-bootstrap-headers=yes install-headers
+    ${HERO_HOST_SRC_DIR}/${HERO_HOST_GLIBC}/configure --prefix=/usr --build=$MACHTYPE --host=${HERO_HOST_TARGET} --target=${HERO_HOST_TARGET} --with-headers=${SYSROOT}/usr/include --disable-multilib --disable-nls --disable-werror libc_cv_forced_unwind=yes --enable-obsolete-rpc
+    make install-headers install_root=${SYSROOT} install-bootstrap-headers=yes
     make $PARALLEL_MAKE csu/subdir_lib
-    install csu/crt1.o csu/crti.o csu/crtn.o ${HERO_GCC_INSTALL_DIR}/${HERO_HOST_TARGET}/lib
-    ${HERO_HOST_TARGET}-gcc -nostdlib -nostartfiles -shared -x c /dev/null -o ${HERO_GCC_INSTALL_DIR}/${HERO_HOST_TARGET}/lib/libc.so
-    touch ${HERO_GCC_INSTALL_DIR}/${HERO_HOST_TARGET}/include/gnu/stubs.h
+    mkdir -p ${SYSROOT}/usr/lib
+    install csu/crt1.o csu/crti.o csu/crtn.o ${SYSROOT}/usr/lib
+    ${HERO_HOST_TARGET}-gcc -nostdlib -nostartfiles -shared -x c /dev/null -o ${SYSROOT}/usr/lib/libc.so
+    touch ${SYSROOT}/usr/include/gnu/stubs.h
+    cp -a bits/stdio_lim.h ${SYSROOT}/usr/include/bits/
     cd ..
 
     # Compiler Support Library
     cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage1
     make all-target-libgcc ${PARALLEL_MAKE}
     make install-target-libgcc
-
-    # Step 6. Standard C Library & the rest of Glibc
+ 
+    # Standard C Library & the rest of Glibc
     cd ${HERO_HOST_GCC_BUILD_DIR}/glibc
     make ${PARALLEL_MAKE}
-    make install
+    make install install_root=${SYSROOT}
     cd ..
 
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH_BACKUP
@@ -142,9 +143,14 @@ build_glibc() {
 }
 
 build_gcc_stage1() {
+    cd $HERO_HOST_LINUX_KERNEL_DIR
+    make ARCH=${HERO_HOST_LINUX_ARCH} INSTALL_HDR_PATH=${SYSROOT}/usr headers_install  
+    #cp -a include/linux include/asm-generic ${SYSROOT}/usr/include/
+    #cp -a include/asm-${HERO_HOST_LINUX_ARCH} ${SYSROOT}/usr/include/asm   
+
     mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage1
     cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage1
-    ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --with-arch=armv7-a ${HERO_HOST_FPU_CONFIG} --with-mode=thumb --enable-languages=c --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions
+    ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --with-arch=armv7-a ${HERO_HOST_FPU_CONFIG} --with-mode=thumb --enable-languages=c --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions --with-sysroot=${SYSROOT}
     make all-gcc ${PARALLEL_MAKE}
     make install-gcc ${PARALLEL_MAKE}
 
@@ -157,7 +163,7 @@ build_gcc_stage1() {
 build_gcc_stage2() {
     mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage2
     cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage2
-    ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --with-arch=armv7-a ${HERO_HOST_FPU_CONFIG} --with-mode=thumb --enable-languages=c,c++,lto --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions
+    ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --with-arch=armv7-a ${HERO_HOST_FPU_CONFIG} --with-mode=thumb --enable-languages=c,c++,lto --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions --with-sysroot=${SYSROOT}
     make all ${PARALLEL_MAKE}
     make install ${PARALLEL_MAKE}
 
@@ -170,7 +176,7 @@ build_gcc_stage2() {
 build_gcc_stage3() {
     mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage3
     cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage3
-    ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --enable-offload-targets=riscv32-unknown-elf=${HERO_GCC_INSTALL_DIR} --with-arch=armv7-a ${HERO_HOST_FPU_CONFIG} --with-mode=thumb --enable-languages=c,c++,lto --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions
+    ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --enable-offload-targets=riscv32-unknown-elf=${HERO_GCC_INSTALL_DIR} --with-arch=armv7-a ${HERO_HOST_FPU_CONFIG} --with-mode=thumb --enable-languages=c,c++,lto --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions --with-sysroot=${SYSROOT}
     make all-gcc ${PARALLEL_MAKE}  
     make all-target-libstdc++-v3 ${PARALLEL_MAKE}
     make all ${PARALLEL_MAKE}
