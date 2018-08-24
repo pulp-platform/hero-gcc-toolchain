@@ -104,8 +104,8 @@ get_sources() {
 build_binutils() {
     mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/binutils
     cd ${HERO_HOST_GCC_BUILD_DIR}/binutils
-   # ${HERO_HOST_SRC_DIR}/binutils/configure --target=${HERO_HOST_TARGET} --prefix=${HERO_GCC_INSTALL_DIR} --disable-multilib --disable-nls --disable-werror --with-sysroot=${SYSROOT}
-   # make all ${PARALLEL_MAKE}
+    ${HERO_HOST_SRC_DIR}/binutils/configure --target=${HERO_HOST_TARGET} --prefix=${HERO_GCC_INSTALL_DIR} --disable-multilib --disable-nls --disable-werror --with-sysroot=${SYSROOT}
+    make all ${PARALLEL_MAKE}
     make install
 }
 
