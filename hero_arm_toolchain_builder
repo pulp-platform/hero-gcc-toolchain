@@ -31,7 +31,7 @@ fi
 source scripts/hero_arm_toolchain_env.sh
 
 # Local envioronmental variables definition
-PARALLEL_MAKE=
+HERO_PARALLEL_BUILD=
 SYSROOT=${HERO_GCC_INSTALL_DIR}/${HERO_HOST_TARGET}/libc
 
 
@@ -105,7 +105,7 @@ build_binutils() {
     mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/binutils
     cd ${HERO_HOST_GCC_BUILD_DIR}/binutils
     ${HERO_HOST_SRC_DIR}/binutils/configure --target=${HERO_HOST_TARGET} --prefix=${HERO_GCC_INSTALL_DIR} --disable-multilib --disable-nls --disable-werror --with-sysroot=${SYSROOT}
-    make all ${PARALLEL_MAKE}
+    make all ${HERO_PARALLEL_BUILD}
     make install
 }
 
@@ -119,7 +119,7 @@ build_glibc() {
 
     ${HERO_HOST_SRC_DIR}/${HERO_HOST_GLIBC}/configure --prefix=/usr --build=$MACHTYPE --host=${HERO_HOST_TARGET} --target=${HERO_HOST_TARGET} --with-headers=${SYSROOT}/usr/include --disable-multilib --disable-nls --disable-werror libc_cv_forced_unwind=yes --enable-obsolete-rpc
     make install-headers install_root=${SYSROOT} install-bootstrap-headers=yes
-    make $PARALLEL_MAKE csu/subdir_lib
+    make $HERO_PARALLEL_BUILD csu/subdir_lib
     mkdir -p ${SYSROOT}/usr/lib
     install csu/crt1.o csu/crti.o csu/crtn.o ${SYSROOT}/usr/lib
     ${HERO_HOST_TARGET}-gcc -nostdlib -nostartfiles -shared -x c /dev/null -o ${SYSROOT}/usr/lib/libc.so
@@ -129,12 +129,12 @@ build_glibc() {
 
     # Compiler Support Library
     cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage1
-    make all-target-libgcc ${PARALLEL_MAKE}
+    make all-target-libgcc ${HERO_PARALLEL_BUILD}
     make install-target-libgcc
  
     # Standard C Library & the rest of Glibc
     cd ${HERO_HOST_GCC_BUILD_DIR}/glibc
-    make ${PARALLEL_MAKE}
+    make ${HERO_PARALLEL_BUILD}
     make install install_root=${SYSROOT}
     cd ..
 
@@ -151,8 +151,8 @@ build_gcc_stage1() {
     mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage1
     cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage1
     ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --with-arch=armv7-a ${HERO_HOST_FPU_CONFIG} --with-mode=thumb --enable-languages=c --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions --with-sysroot=${SYSROOT}
-    make all-gcc ${PARALLEL_MAKE}
-    make install-gcc ${PARALLEL_MAKE}
+    make all-gcc ${HERO_PARALLEL_BUILD}
+    make install-gcc ${HERO_PARALLEL_BUILD}
 
     if [ $? -ne 0 ]; then
         echo "ERROR: build_gcc_stage1 failed, aborting now."
@@ -164,8 +164,8 @@ build_gcc_stage2() {
     mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage2
     cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage2
     ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --with-arch=armv7-a ${HERO_HOST_FPU_CONFIG} --with-mode=thumb --enable-languages=c,c++,lto --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions --with-sysroot=${SYSROOT}
-    make all ${PARALLEL_MAKE}
-    make install ${PARALLEL_MAKE}
+    make all ${HERO_PARALLEL_BUILD}
+    make install ${HERO_PARALLEL_BUILD}
 
     if [ $? -ne 0 ]; then
         echo "ERROR: build_gcc_stage2 failed, aborting now."
@@ -177,10 +177,10 @@ build_gcc_stage3() {
     mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage3
     cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage3
     ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --enable-offload-targets=riscv32-unknown-elf=${HERO_GCC_INSTALL_DIR} --with-arch=armv7-a ${HERO_HOST_FPU_CONFIG} --with-mode=thumb --enable-languages=c,c++,lto --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions --with-sysroot=${SYSROOT}
-    make all-gcc ${PARALLEL_MAKE}  
-    make all-target-libstdc++-v3 ${PARALLEL_MAKE}
-    make all ${PARALLEL_MAKE}
-    make install ${PARALLEL_MAKE}
+    make all-gcc ${HERO_PARALLEL_BUILD}  
+    make all-target-libstdc++-v3 ${HERO_PARALLEL_BUILD}
+    make all ${HERO_PARALLEL_BUILD}
+    make install ${HERO_PARALLEL_BUILD}
 
     if [ $? -ne 0 ]; then
         echo "ERROR: build_gcc_stage3 failed, aborting now."
@@ -222,7 +222,11 @@ while getopts PThblcgsjdx opt; do
             ;;
         d)  do_get_sources=true
             ;;
-        j)  PARALLEL_MAKE=-j`nproc`
+        j)  if [ -z "${HERO_MAX_PARALLEL_BUILD_JOBS}" ]; then
+                HERO_PARALLEL_BUILD=-j`nproc`
+            else
+                HERO_PARALLEL_BUILD=-j${HERO_MAX_PARALLEL_BUILD_JOBS}
+            fi
             ;;
         T)  do_compile_binutils=true
             do_compile_cc=true
@@ -244,6 +248,7 @@ while getopts PThblcgsjdx opt; do
             ;;
     esac
 done
+
 if [[ $# -eq 0 ]] ; then
     show_help
     if [[ "$_" = "$0" ]]; then

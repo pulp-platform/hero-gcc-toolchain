@@ -31,7 +31,7 @@ fi
 source scripts/hero_riscv32_toolchain_env.sh
 
 # Local envioronmental variables definition
-PARALLEL_MAKE=
+HERO_PARALLEL_BUILD=
 
 show_help() {
 cat << EOF
@@ -92,7 +92,7 @@ build_binutils() {
     mkdir -p ${HERO_ACCEL_GCC_BUILD_DIR}/binutils
     cd ${HERO_ACCEL_GCC_BUILD_DIR}/binutils
     ${HERO_ACCEL_SRC_DIR}/binutils/configure --target=${HERO_ACCEL_TARGET} --prefix=${HERO_ACCEL_GCC_INSTALL_DIR} --disable-werror
-    make all ${PARALLEL_MAKE}
+    make all ${HERO_PARALLEL_BUILD}
     make install
 }
 
@@ -100,7 +100,7 @@ build_newlib() {
     mkdir -p ${HERO_ACCEL_GCC_BUILD_DIR}/newlib
     cd ${HERO_ACCEL_GCC_BUILD_DIR}/newlib
     ${HERO_ACCEL_SRC_DIR}/newlib/configure --prefix=${HERO_ACCEL_GCC_INSTALL_DIR} --target=${HERO_ACCEL_TARGET} --enable-newlib-io-long-double --enable-newlib-io-long-long --enable-newlib-io-c99-formats 'CFLAGS_FOR_TARGET=-Os -mcmodel=medlow' 'target_alias=riscv32-unknown-elf'
-    make all ${PARALLEL_MAKE}
+    make all ${HERO_PARALLEL_BUILD}
     make install
 }
 
@@ -108,7 +108,7 @@ build_gcc_stage1() {
     mkdir -p ${HERO_ACCEL_GCC_BUILD_DIR}/gcc-stage1
     cd ${HERO_ACCEL_GCC_BUILD_DIR}/gcc-stage1
     ${HERO_ACCEL_GCC_SRC_DIR}/configure --target=${HERO_ACCEL_TARGET} --prefix=${HERO_ACCEL_GCC_INSTALL_DIR} --disable-shared --disable-threads --disable-tls --enable-languages=c,c++ --with-system-zlib --with-newlib --disable-libmudflap --disable-libssp --disable-libquadmath --disable-libgomp --disable-nls --enable-checking=yes --enable-multilib --with-abi=ilp32 --with-arch=rv32imc 'CFLAGS_FOR_TARGET=-Os -mcmodel=medlow' 'target_alias=riscv32-unknown-elf'
-    make all-gcc ${PARALLEL_MAKE}
+    make all-gcc ${HERO_PARALLEL_BUILD}
     make install-gcc
 }
 
@@ -117,7 +117,7 @@ build_gcc_stage2() {
     cd ${HERO_ACCEL_GCC_BUILD_DIR}/gcc-stage2
     ${HERO_ACCEL_GCC_SRC_DIR}/configure --build=${HERO_BUILD_TARGET} --target=${HERO_ACCEL_TARGET} --prefix=${HERO_ACCEL_GCC_INSTALL_DIR} --enable-languages=c,c++,lto --disable-shared --disable-threads --with-system-zlib --enable-tls --with-newlib --with-headers=${HERO_ACCEL_GCC_INSTALL_DIR}/${HERO_ACCEL_TARGET}/include --disable-libmudflap --disable-libssp --disable-libquadmath --disable-libgomp --disable-nls --enable-checking=yes --enable-multilib --with-abi=ilp32 --with-arch=rv32imc 'CFLAGS_FOR_TARGET=-Os -mcmodel=medlow' 'target_alias=riscv32-unknown-elf'
  
-    make all ${PARALLEL_MAKE}
+    make all ${HERO_PARALLEL_BUILD}
     make install
 }
 
@@ -126,7 +126,7 @@ build_gcc_stage3() {
     cd ${HERO_ACCEL_GCC_BUILD_DIR}/gcc-stage3
     ${HERO_ACCEL_GCC_SRC_DIR}/configure --build=${HERO_BUILD_TARGET} --target=${HERO_ACCEL_TARGET}  --enable-as-accelerator-for=arm-linux-gnueabihf --prefix=${HERO_ACCEL_GCC_INSTALL_DIR} --enable-languages=c,c++,lto --disable-shared --disable-threads --with-system-zlib --enable-tls --with-newlib --with-headers=${HERO_ACCEL_GCC_INSTALL_DIR}/${HERO_ACCEL_TARGET}/include --disable-libmudflap --disable-libssp --disable-libquadmath --disable-libgomp --disable-nls --enable-checking=yes --enable-multilib --with-abi=ilp32 --with-arch=rv32imc 'CFLAGS_FOR_TARGET=-Os -mcmodel=medlow' 'target_alias=riscv32-unknown-elf'
  
-    make all ${PARALLEL_MAKE}
+    make all ${HERO_PARALLEL_BUILD}
     make install
 }
 
@@ -164,7 +164,11 @@ while getopts PThblcgsjdx opt; do
             ;;
         d)  do_get_sources=true
             ;;
-        j)  PARALLEL_MAKE=-j`nproc`
+        j)  if [ -z "${HERO_MAX_PARALLEL_BUILD_JOBS}" ]; then
+                HERO_PARALLEL_BUILD=-j`nproc`
+            else
+                HERO_PARALLEL_BUILD=-j${HERO_MAX_PARALLEL_BUILD_JOBS}
+            fi
             ;;
         T)  do_compile_binutils=true
             do_compile_cc=true
@@ -186,6 +190,7 @@ while getopts PThblcgsjdx opt; do
             ;;
     esac
 done
+
 if [[ $# -eq 0 ]] ; then
     show_help
     if [[ "$_" = "$0" ]]; then
