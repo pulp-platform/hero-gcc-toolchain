@@ -72,13 +72,13 @@ else
 fi
 
 if [[ ":$PATH:" == *":${HERO_GCC_INSTALL_DIR}/bin:"* ]]; then
-  echo "Your $PATH is correctly set. Skipping installation."
+  echo "Your PATH is correctly set. Skipping installation."
 else
   export PATH="${HERO_GCC_INSTALL_DIR}/bin":${PATH}
 fi
 
 if [[ ":$LD_LIBRARY_PATH:" == *":${HERO_GCC_INSTALL_DIR}/lib:"* ]]; then
-  echo "Your $LD_LIBRARY_PATH is correctly set. Skipping installation."
+  echo "Your LD_LIBRARY_PATH is correctly set. Skipping installation."
 else
   export LD_LIBRARY_PATH="${HERO_GCC_INSTALL_DIR}/lib":${LD_LIBRARY_PATH}
 fi
