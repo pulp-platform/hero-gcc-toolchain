@@ -173,12 +173,20 @@ build_gcc_stage2() {
     fi
 }
 
+ensure_clean_libgomp_build() {
+    if [ -d "arm-linux-gnueabihf/libgomp/" ]; then
+        echo "Cleaning up libgomp build folder."
+        rm -rf arm-linux-gnueabihf/libgomp/*
+    fi
+}
+
 build_gcc_stage3() {
     mkdir -p ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage3
     cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage3
     ${HERO_HOST_GCC_SRC_DIR}/configure --prefix=${HERO_GCC_INSTALL_DIR} --target=${HERO_HOST_TARGET} --enable-offload-targets=riscv32-unknown-elf=${HERO_GCC_INSTALL_DIR} --with-arch=armv7-a ${HERO_HOST_FPU_CONFIG} --with-mode=thumb --enable-languages=c,c++,lto --disable-multilib --disable-nls --disable-werror --disable-sjlj-exceptions --with-sysroot=${SYSROOT}
     make all-gcc ${HERO_PARALLEL_BUILD}  
     make all-target-libstdc++-v3 ${HERO_PARALLEL_BUILD}
+    ensure_clean_libgomp_build
     make all ${HERO_PARALLEL_BUILD}
     make install ${HERO_PARALLEL_BUILD}
 
