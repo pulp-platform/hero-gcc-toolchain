@@ -70,7 +70,8 @@ Advanced commands
     -l : COMPILE glibc
     -c : COMPILE only-gcc (stage 1)
     -g : COMPILE gcc with accelerator (stage 3)
-    -s : COMPILE gcc standalone (stage 2)    
+    -s : COMPILE gcc standalone (stage 2)
+    -o : COMPILE libgomp (stage 3)
 
 EOF
 }
@@ -196,6 +197,18 @@ build_gcc_stage3() {
     fi
 }
 
+build_libgomp() {
+    cd ${HERO_HOST_GCC_BUILD_DIR}/gcc-stage3
+    ensure_clean_libgomp_build
+    make all ${HERO_PARALLEL_BUILD}
+    make install ${HERO_PARALLEL_BUILD}
+
+    if [ $? -ne 0 ]; then
+        echo "ERROR: build_libgomp failed, aborting now."
+        exit 1
+    fi
+}
+
 #
 # Main function start HERE
 #
@@ -207,8 +220,9 @@ do_compile_glibc=false
 do_compile_cc=false
 do_compile_gcc=false
 do_compile_gcc_with_accelerator=false
+do_compile_libgomp=false
 
-while getopts PThblcgsjdx opt; do
+while getopts PThblcgsjdxo opt; do
     case $opt in
         h)
             show_help
@@ -247,6 +261,8 @@ while getopts PThblcgsjdx opt; do
             do_compile_glibc=true
             do_compile_gcc_with_accelerator=false
             do_compile_gcc=true
+            ;;
+        o)  do_compile_libgomp=true
             ;;
         *)
             show_help >&2
@@ -295,6 +311,11 @@ fi
 # Build GCC (stage 3)
 if [ "$do_compile_gcc_with_accelerator" = true ] ; then
     build_gcc_stage3
+fi
+
+# Build Libgomp
+if [ "$do_compile_libgomp" = true ] ; then
+    build_libgomp
 fi
 
 echo "Done!"
