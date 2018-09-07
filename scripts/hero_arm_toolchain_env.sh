@@ -68,7 +68,7 @@ else
   # HERO MKOFFLOAD external compilation flags
   export PULP_HERO_EXTCFLAGS="-march=rv32imcxpulpv2 -D__riscv__ -DPLATFORM=${PLATFORM} -Wextra -Wall -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wundef -fdata-sections -ffunction-sections -I${PULP_SDK_INSTALL}/include/io -I${PULP_SDK_INSTALL}/include"
 
-  export PULP_HERO_EXTLDFLAGS="${PULP_SDK_INSTALL}/hero/hero-z-7045/rt_conf.o ${PULP_SDK_INSTALL}/lib/hero-z-7045/rt/crt0.o -nostartfiles -nostdlib -Wl,--gc-sections -T${PULP_SDK_INSTALL}/hero/hero-z-7045/test.ld -T${PULP_SDK_INSTALL}/hero/hero-z-7045/test_config.ld -L${PULP_SDK_INSTALL}/lib/hero-z-7045 -lgomp -lrt -lrtio -lrt -lhero-target -lgcc -lbench -lm"
+  export PULP_HERO_EXTLDFLAGS="${PULP_SDK_INSTALL}/hero/hero-z-7045/rt_conf.o ${PULP_SDK_INSTALL}/lib/hero-z-7045/rt/crt0.o -nostartfiles -nostdlib -Wl,--gc-sections -T${PULP_SDK_INSTALL}/hero/hero-z-7045/test.ld -T${PULP_SDK_INSTALL}/hero/hero-z-7045/test_config.ld -L${PULP_SDK_INSTALL}/lib/hero-z-7045 -lgomp -lrt -lrtio -lrt -lhero-target -lvmm -larchi_host -lrt -larchi_host -lgcc -lbench -lm"
 fi
 
 if [[ ":$PATH:" == *":${HERO_GCC_INSTALL_DIR}/bin:"* ]]; then
