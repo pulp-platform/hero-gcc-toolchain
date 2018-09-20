@@ -25,27 +25,27 @@ HERO_HOST_FPU_CONFIG="--with-fpu=neon-fp16 --with-float=hard"
 
 RET=0
 
-HERO_GCC_INSTALL_DIR=`realpath install`
+HERO_GCC_INSTALL_DIR=`readlink -f install`
 if [ ! -d "${HERO_GCC_INSTALL_DIR}" ]; then
   mkdir -p ${HERO_GCC_INSTALL_DIR}
 fi
 
-HERO_GCC_BUILD_DIR=`realpath build`
+HERO_GCC_BUILD_DIR=`readlink -f build`
 if [ ! -d "${HERO_GCC_BUILD_DIR}" ]; then
   mkdir -p ${HERO_GCC_BUILD_DIR}
 fi
 
-HERO_HOST_SRC_DIR=`realpath src`
+HERO_HOST_SRC_DIR=`readlink -f src`
 if [ ! -d "${HERO_HOST_SRC_DIR}" ]; then
   mkdir -p ${HERO_HOST_SRC_DIR}
 fi
 
-HERO_HOST_GCC_SRC_DIR=`realpath src/riscv-gcc`
+HERO_HOST_GCC_SRC_DIR=`readlink -f src/riscv-gcc`
 if [ ! -d "${HERO_HOST_GCC_SRC_DIR}" ]; then
   mkdir -p ${HERO_HOST_GCC_SRC_DIR}
 fi
 
-HERO_HOST_GCC_BUILD_DIR=`realpath ${HERO_GCC_BUILD_DIR}/${HERO_HOST_TARGET}`
+HERO_HOST_GCC_BUILD_DIR=`readlink -f ${HERO_GCC_BUILD_DIR}/${HERO_HOST_TARGET}`
 if [ ! -d "${HERO_HOST_GCC_BUILD_DIR}" ]; then
   mkdir -p ${HERO_HOST_GCC_BUILD_DIR}
 fi
