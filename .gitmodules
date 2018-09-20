@@ -1,9 +1,12 @@
 [submodule "src/binutils"]
 	path = src/binutils
 	url = https://github.com/pulp-platform/pulp-riscv-binutils-gdb.git
+	shallow = true
 [submodule "src/newlib"]
 	path = src/newlib
 	url = https://github.com/pulp-platform/pulp-riscv-newlib.git
+	shallow = true
 [submodule "src/riscv-gcc"]
 	path = src/riscv-gcc
 	url = https://github.com/pulp-platform/pulp-riscv-gcc.git
+	shallow = true
