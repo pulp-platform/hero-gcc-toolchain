@@ -179,8 +179,16 @@ while getopts PThblcgsjdx opt; do
         P)  do_compile_binutils=true
             do_compile_cc=true
             do_compile_newlib=true
+            if [ -n "${HERO_TRAVIS_SECOND_PART}" ]; then
+                do_compile_binutils=false
+                do_compile_cc=false
+                do_compile_newlib=false
+            fi
             do_compile_gcc_as_accelerator=false
             do_compile_gcc=true
+            if [ -n "${HERO_TRAVIS_FIRST_PART}" ]; then
+                do_compile_gcc=false
+            fi
             ;;
         *)
             show_help >&2
