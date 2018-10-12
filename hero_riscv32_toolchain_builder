@@ -74,18 +74,7 @@ EOF
 }
 
 get_sources() {
-    cd ${HERO_ACCEL_GCC_SRC_DIR}
-    git submodule update --init --recursive
-    # Download GCC prerequisites
-    ${HERO_ACCEL_GCC_SRC_DIR}/contrib/download_prerequisites
-    
-    # Binutils sources
-    cd ${HERO_ACCEL_SRC_DIR}/binutils
-    git submodule update --init --recursive
-
-    # Newlib sources
-    cd ${HERO_ACCEL_SRC_DIR}/newlib
-    git submodule update --init --recursive
+    . ${HERO_TOOLCHAIN_DIR}/scripts/hero_toolchain_get_sources.sh
 }
 
 build_binutils() {
