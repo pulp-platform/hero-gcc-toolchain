@@ -20,32 +20,36 @@
 HERO_ACCEL_TARGET=riscv32-unknown-elf
 HERO_BUILD_TARGET=x86_64-linux-gnu
 
-HERO_GCC_INSTALL_DIR=`realpath install`
+if [[ ! ${HERO_TOOLCHAIN_DIR+x} ]]; then
+  HERO_TOOLCHAIN_DIR=`readlink -f .`
+fi
+
+HERO_GCC_INSTALL_DIR=`readlink -f install`
 if [ ! -d "${HERO_GCC_INSTALL_DIR}" ]; then
   mkdir -p ${HERO_GCC_INSTALL_DIR}
 fi
 
-HERO_GCC_BUILD_DIR=`realpath build`
+HERO_GCC_BUILD_DIR=`readlink -f build`
 if [ ! -d "${HERO_GCC_BUILD_DIR}" ]; then
   mkdir -p ${HERO_GCC_BUILD_DIR}
 fi
 
-HERO_ACCEL_SRC_DIR=`realpath src`
+HERO_ACCEL_SRC_DIR=`readlink -f ./src`
 if [ ! -d "${HERO_ACCEL_SRC_DIR}" ]; then
   mkdir -p ${HERO_ACCEL_SRC_DIR}
 fi
 
-HERO_ACCEL_GCC_SRC_DIR=`realpath src/riscv-gcc`
+HERO_ACCEL_GCC_SRC_DIR=`readlink -f ./src/riscv-gcc`
 if [ ! -d "${HERO_ACCEL_GCC_SRC_DIR}" ]; then
   mkdir -p ${HERO_ACCEL_GCC_SRC_DIR}
 fi
 
-HERO_ACCEL_GCC_BUILD_DIR=`realpath ${HERO_GCC_BUILD_DIR}/${HERO_ACCEL_TARGET}`
+HERO_ACCEL_GCC_BUILD_DIR=`readlink -f ${HERO_GCC_BUILD_DIR}/${HERO_ACCEL_TARGET}`
 if [ ! -d "${HERO_ACCEL_GCC_BUILD_DIR}" ]; then
   mkdir -p ${HERO_ACCEL_GCC_BUILD_DIR}
 fi
 
-HERO_ACCEL_GCC_INSTALL_DIR=`realpath ${HERO_GCC_INSTALL_DIR}`
+HERO_ACCEL_GCC_INSTALL_DIR=`readlink -f ${HERO_GCC_INSTALL_DIR}`
 if [ ! -d "${HERO_ACCEL_GCC_INSTALL_DIR}" ]; then
   mkdir -p ${HERO_ACCEL_GCC_INSTALL_DIR}
 fi

@@ -77,29 +77,7 @@ EOF
 }
 
 get_sources() {
-    cd ${HERO_HOST_GCC_SRC_DIR}
-    git submodule update --init --recursive
-    # Download GCC prerequisites
-    ${HERO_HOST_GCC_SRC_DIR}/contrib/download_prerequisites
-
-    # Binutils sources
-    cd ${HERO_HOST_SRC_DIR}/binutils
-    git submodule update --init --recursive
-
-    # Get Kernel Sources
-    # wget -nc https://www.kernel.org/pub/linux/kernel/v3.x/$LINUX_KERNEL_VERSION.tar.xz
-
-    # Get Glibc
-    cd ${HERO_HOST_SRC_DIR} 
-    rm -rf $HERO_HOST_GLIBC
-    rm -rf $HERO_HOST_GLIBC.tar.xz
-    {
-        wget --tries=1 --timeout=60 -nc http://mirror.switch.ch/ftp/mirror/gnu/glibc/$HERO_HOST_GLIBC.tar.xz
-    } || {
-        wget -nc https://ftp.gnu.org/gnu/glibc/$HERO_HOST_GLIBC.tar.xz
-    }
-    for f in *.tar*; do tar xfk $f; done
-    rm -rf $HERO_HOST_GLIBC.tar.xz
+    . ${HERO_TOOLCHAIN_DIR}/scripts/hero_toolchain_get_sources.sh
 }
 
 build_binutils() {
