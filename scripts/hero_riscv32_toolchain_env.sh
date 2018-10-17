@@ -20,6 +20,10 @@
 HERO_ACCEL_TARGET=riscv32-unknown-elf
 HERO_BUILD_TARGET=x86_64-linux-gnu
 
+if [[ ! ${HERO_TOOLCHAIN_DIR+x} ]]; then
+  HERO_TOOLCHAIN_DIR=`readlink -f .`
+fi
+
 HERO_GCC_INSTALL_DIR=`readlink -f install`
 if [ ! -d "${HERO_GCC_INSTALL_DIR}" ]; then
   mkdir -p ${HERO_GCC_INSTALL_DIR}

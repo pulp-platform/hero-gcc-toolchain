@@ -25,6 +25,10 @@ HERO_HOST_FPU_CONFIG="--with-fpu=neon-fp16 --with-float=hard"
 
 RET=0
 
+if [[ ! ${HERO_TOOLCHAIN_DIR+x} ]]; then
+  HERO_TOOLCHAIN_DIR=`readlink -f .`
+fi
+
 HERO_GCC_INSTALL_DIR=`readlink -f install`
 if [ ! -d "${HERO_GCC_INSTALL_DIR}" ]; then
   mkdir -p ${HERO_GCC_INSTALL_DIR}
