@@ -18,8 +18,12 @@
 # This script build the GCC 7.1.1 toolchain for the HERO host
 
 # Setup the envioronmental variables
-source scripts/hero_riscv32_toolchain_env.sh
-source scripts/hero_arm_toolchain_env.sh
+if [[ ! ${HERO_TOOLCHAIN_DIR+x} ]]; then
+  HERO_TOOLCHAIN_DIR=`readlink -f .`
+fi
+
+source ${HERO_TOOLCHAIN_DIR}/scripts/hero_riscv32_toolchain_env.sh
+source ${HERO_TOOLCHAIN_DIR}/scripts/hero_arm_toolchain_env.sh
 
 export HERO_GCC_INSTALL_DIR=$HERO_GCC_INSTALL_DIR
 export PATH=$PATH

@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/), and this project adheres to
 [Semantic Versioning](http://semver.org).
 
+## v1.1.1 - 2018-10-18
+
+### Fixed
+- `scripts/*`: environmental variables are now based on absolute addresses. `setup.sh` can be called from any location.
+
+
 ## v1.1.0 - 2018-10-17
 
 ### Added

@@ -24,22 +24,22 @@ if [[ ! ${HERO_TOOLCHAIN_DIR+x} ]]; then
   HERO_TOOLCHAIN_DIR=`readlink -f .`
 fi
 
-HERO_GCC_INSTALL_DIR=`readlink -f install`
+HERO_GCC_INSTALL_DIR=`readlink -f ${HERO_TOOLCHAIN_DIR}/install`
 if [ ! -d "${HERO_GCC_INSTALL_DIR}" ]; then
   mkdir -p ${HERO_GCC_INSTALL_DIR}
 fi
 
-HERO_GCC_BUILD_DIR=`readlink -f build`
+HERO_GCC_BUILD_DIR=`readlink -f ${HERO_TOOLCHAIN_DIR}/build`
 if [ ! -d "${HERO_GCC_BUILD_DIR}" ]; then
   mkdir -p ${HERO_GCC_BUILD_DIR}
 fi
 
-HERO_ACCEL_SRC_DIR=`readlink -f ./src`
+HERO_ACCEL_SRC_DIR=`readlink -f ${HERO_TOOLCHAIN_DIR}/src`
 if [ ! -d "${HERO_ACCEL_SRC_DIR}" ]; then
   mkdir -p ${HERO_ACCEL_SRC_DIR}
 fi
 
-HERO_ACCEL_GCC_SRC_DIR=`readlink -f ./src/riscv-gcc`
+HERO_ACCEL_GCC_SRC_DIR=`readlink -f ${HERO_TOOLCHAIN_DIR}/src/riscv-gcc`
 if [ ! -d "${HERO_ACCEL_GCC_SRC_DIR}" ]; then
   mkdir -p ${HERO_ACCEL_GCC_SRC_DIR}
 fi
