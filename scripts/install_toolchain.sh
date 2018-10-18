@@ -15,8 +15,8 @@
 #
 # Authors: Alessandro Capotondi, University of Bologna (alessandro.capotondi@unibo.it)
 
-source scripts/hero_arm_toolchain_env.sh
-source scripts/hero_riscv32_toolchain_env.sh
+source ${HERO_TOOLCHAIN_DIR}/scripts/hero_arm_toolchain_env.sh
+source ${HERO_TOOLCHAIN_DIR}/scripts/hero_riscv32_toolchain_env.sh
 
 RET=0
 if [ -z "${HERO_TARGET_HOST}" ]; then
