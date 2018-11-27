@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/), and this project adheres to
 [Semantic Versioning](http://semver.org).
 
+## v1.2.0 - 2018-11-27
+
+### Changed
+- Update `src/riscv-gcc`, `src/binutils`, and `src/newlib` submodules.
+
 ## v1.1.1 - 2018-10-18
 
 ### Fixed
