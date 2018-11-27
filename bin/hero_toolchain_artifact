@@ -1,0 +1,238 @@
+#! /bin/bash
+# Copyright (C) 2018 ETH Zurich and University of Bologna
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Authors: Alessandro Capotondi, University of Bologna (alessandro.capotondi@unibo.it)
+
+
+# Setup the envioronmental variables
+if [ -z "${HERO_TOOLCHAIN_DIR}" ]; then
+  echo >&2 "Error: missing environment variable HERO_TOOLCHAIN_DIR!"
+  exit 1
+fi
+source ${HERO_TOOLCHAIN_DIR}/env/hero_toolchain_env.sh
+
+GITHUB_DEPLOYER=pulp-platform
+GITHUB_REPO=hero-gcc-toolchain
+
+show_help() {
+cat << EOF
+
+
+Usage: ${0##*/} [-mpd -a <file>]
+
+
+HERO Github artifact manager
+
+
+Commands
+----------------------------------------------------
+    -h        : display this help and exit
+    -m        : generate artifact
+    -p        : publish artifact
+    -a <file> : append custom artifact
+    -d        : download artifact
+
+EOF
+}
+
+get_artifacts_distro_name() {
+    echo "`lsb_release -a | grep Distributor | awk '{print $3}'`-`lsb_release -a | grep Release | awk '{print $2}'`"
+}
+
+get_artifacts_tag_name() {
+    ARTIFACT_TAG=$(git tag -l --points-at HEAD)
+    if [[ -z "$ARTIFACT_TAG" ]]; then
+        ARTIFACT_TAG=$(cd ${HERO_TOOLCHAIN_DIR}; git rev-parse --short HEAD)
+    fi    
+    echo ${ARTIFACT_TAG}
+}
+
+get_artifacts_name() {
+    ARTIFACT_TAG=`get_artifacts_tag_name`
+    ARTIFACT_DISTRO=`get_artifacts_distro_name`
+    ARTIFACT_NAME=$1-${ARTIFACT_TAG}-${ARTIFACT_DISTRO}.tar.gz
+    echo ${ARTIFACT_NAME}
+}
+
+make_artifacts() {
+    GCC_ARTIFACT=`get_artifacts_name hero-gcc-toolchain`
+    tar cvfz ${GCC_ARTIFACT} -C ${HERO_TOOLCHAIN_INSTALL_DIR} .
+
+    if [ $? -ne 0 ]; then
+        echo  >&2 "ERROR: failed make artifact ${GCC_ARTIFACT}"
+        exit 1
+    fi
+}
+
+deploy_artifacts() {
+    GCC_ARTIFACT=`get_artifacts_name hero-gcc-toolchain`
+
+    # Check
+    type github-release >/dev/null 2>&1 || { echo >&2 "github-release: missing. Please install it! https://github.com/aktau/github-release."; exit 1; }
+
+    if [[ -z ${GITHUB_DEPLOYER+x} ]]; then
+        echo  >&2  "ERROR: GITHUB_DEPLOYER is not set!"
+        exit 1
+    fi
+
+    if [[ -z ${GITHUB_REPO+x} ]]; then
+        echo  >&2  "ERROR: GITHUB_REPO is not set!"
+        exit 1
+    fi
+
+    if [[ -z ${GITHUB_TOKEN+x} ]]; then
+        echo  >&2  "ERROR: GITHUB_TOKEN is not set!"
+        exit 1
+    fi
+
+    if [[ ! -f ${GCC_ARTIFACT} ]]; then
+        echo  >&2  "ERROR: GCC_ARTIFACT (${GCC_ARTIFACT}) does not exit!"
+        exit 1
+    fi
+
+    git tag $(get_artifacts_tag_name) && git push --tags
+    github-release release --user ${GITHUB_DEPLOYER} --repo ${GITHUB_REPO} --tag $(get_artifacts_tag_name) --name "Auto-deployed Tag $(get_artifacts_tag_name)" --pre-release
+    github-release upload --user ${GITHUB_DEPLOYER} --repo ${GITHUB_REPO} --tag $(get_artifacts_tag_name) --name ${GCC_ARTIFACT} --file ${GCC_ARTIFACT}
+}
+
+deploy_append_artifact() {
+    GCC_ARTIFACT=`get_artifacts_name hero-gcc-toolchain`
+
+    # Check
+    type github-release >/dev/null 2>&1 || { echo >&2 "github-release: missing. Please install it! https://github.com/aktau/github-release."; exit 1; }
+
+    if [[ -z ${GITHUB_DEPLOYER+x} ]]; then
+        echo  >&2  "ERROR: GITHUB_DEPLOYER is not set!"
+        exit 1
+    fi
+
+    if [[ -z ${GITHUB_REPO+x} ]]; then
+        echo  >&2  "ERROR: GITHUB_REPO is not set!"
+        exit 1
+    fi
+
+    if [[ -z ${GITHUB_TOKEN+x} ]]; then
+        echo  >&2  "ERROR: GITHUB_TOKEN is not set!"
+        exit 1
+    fi
+
+    if [[ ! -f ${GCC_ARTIFACT} ]]; then
+        echo  >&2  "ERROR: GCC_ARTIFACT (${GCC_ARTIFACT}) does not exit!"
+        exit 1
+    fi
+
+    github-release upload --user ${GITHUB_DEPLOYER} --repo ${GITHUB_REPO} --tag $(get_artifacts_tag_name) --name $1 --file $1
+}
+
+download_artifacts() {
+    GCC_ARTIFACT=`get_artifacts_name hero-gcc-toolchain`
+
+    # Check
+    # type github-release >/dev/null 2>&1 || { echo >&2 "github-release: missing. Please install it! https://github.com/aktau/github-release."; exit 1; }
+
+    if [[ -z ${GITHUB_DEPLOYER+x} ]]; then
+        echo  >&2  "ERROR: GITHUB_DEPLOYER is not set!"
+        exit 1
+    fi
+
+    if [[ -z ${GITHUB_REPO+x} ]]; then
+        echo  >&2  "ERROR: GITHUB_REPO is not set!"
+        exit 1
+    fi
+    
+    cd ${HERO_TOOLCHAIN_DIR}
+    # github-release download --user ${GITHUB_DEPLOYER} --repo ${GITHUB_REPO} --tag $(get_artifacts_tag_name) --name ${GCC_ARTIFACT}
+    wget -nc https://github.com/${GITHUB_DEPLOYER}/${GITHUB_REPO}/releases/download/$(get_artifacts_tag_name)/${GCC_ARTIFACT}
+
+    if [ $? -ne 0 ]; then
+        echo  >&2 "warning: ${GCC_ARTIFACT} does not exits!"
+        exit 1
+    else
+        mkdir -p ${HERO_TOOLCHAIN_INSTALL_DIR}
+        tar xvfz ${GCC_ARTIFACT} -C ${HERO_TOOLCHAIN_INSTALL_DIR}
+        rm -rf ${GCC_ARTIFACT}
+    fi
+}
+
+#
+# Main function start HERE
+#
+
+do_make_artifact=false
+do_publish_artifact=false
+do_publish_custom_artifact=false
+custom_artifact=
+do_download_artifact=false
+
+
+while getopts hmpda: opt; do
+    case $opt in
+        h)
+            show_help
+            if [[ "$_" = "$0" ]]; then
+                exit 0
+            fi
+            ;;
+        m)  do_make_artifact=true
+            ;;
+        p)  do_publish_artifact=true
+            ;;
+        a)  do_publish_custom_artifact=true
+            custom_artifact=$OPTARG
+            ;;            
+        d)  do_download_artifact=true
+            ;;
+        \?)
+            echo >&2 "Unknown option: -$OPTARG"
+            exit 1
+            ;;
+        :)
+            echo >&2 "Missing option argument for -$OPTARG"
+            exit 1
+            ;;              
+        *)
+            show_help >&2
+            if [[ "$_" = "$0" ]]; then
+                exit 1
+            fi
+            ;;
+    esac
+done
+
+if [[ $# -eq 0 ]] ; then
+    show_help
+    if [[ "$_" = "$0" ]]; then
+        exit 0
+    fi
+fi
+
+shift "$(($OPTIND - 1))"
+
+
+if [ "$do_make_artifact" = true ] ; then
+    make_artifacts
+fi
+
+if [ "$do_publish_artifact" = true ] ; then
+    deploy_artifacts
+fi
+
+if [ "$do_publish_custom_artifact" = true ] ; then
+    deploy_append_artifact $custom_artifact
+fi
+
+if [ "$do_download_artifact" = true ] ; then
+    download_artifacts
+fi

@@ -15,18 +15,22 @@
 #
 # Authors: Alessandro Capotondi, University of Bologna (alessandro.capotondi@unibo.it)
 #
-# This script build the GCC 7.1.1 toolchain for the HERO host
+# Installation script for HERO GCC 7.1.1 toolchain
+
 
 # Setup the envioronmental variables
 if [[ ! ${HERO_TOOLCHAIN_DIR+x} ]]; then
-  HERO_TOOLCHAIN_DIR=`readlink -f .`
+	if [[ ! -f "${0##*/}" ]]; then
+		echo  >&2 "Error: ${0##*/} should be launched from the directory that contains it"
+	    exit 1
+	fi
+	export HERO_TOOLCHAIN_DIR=`readlink -f .`
 fi
 
-source ${HERO_TOOLCHAIN_DIR}/scripts/hero_riscv32_toolchain_env.sh
-source ${HERO_TOOLCHAIN_DIR}/scripts/hero_arm_toolchain_env.sh
+source ${HERO_TOOLCHAIN_DIR}/env/hero_toolchain_env.sh
 
-export HERO_GCC_INSTALL_DIR=$HERO_GCC_INSTALL_DIR
-export PATH=$PATH
+export HERO_TOOLCHAIN_INSTALL_DIR=$HERO_TOOLCHAIN_INSTALL_DIR
+export PATH=${HERO_TOOLCHAIN_DIR}/bin:$PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 
 # That's all folks!!

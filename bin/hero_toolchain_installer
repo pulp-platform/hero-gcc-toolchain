@@ -15,24 +15,29 @@
 #
 # Authors: Alessandro Capotondi, University of Bologna (alessandro.capotondi@unibo.it)
 
-source ${HERO_TOOLCHAIN_DIR}/scripts/hero_arm_toolchain_env.sh
-source ${HERO_TOOLCHAIN_DIR}/scripts/hero_riscv32_toolchain_env.sh
+
+# Setup the envioronmental variables
+if [ -z "${HERO_TOOLCHAIN_DIR}" ]; then
+  echo >&2 "Error: missing environment variable HERO_TOOLCHAIN_DIR!"
+  exit 1
+fi
+source ${HERO_TOOLCHAIN_DIR}/env/hero_toolchain_env.sh
 
 RET=0
 if [ -z "${HERO_TARGET_HOST}" ]; then
-    echo "Error: HERO_TARGET_HOST environmental variables is missing!"
+    echo  >&2  "Error: HERO_TARGET_HOST environmental variables is missing!"
     RET=1
 fi
 if [ -z "${HERO_TARGET_PATH}" ]; then
-    echo "Error: HERO_TARGET_PATH environmental variables is missing!"
+    echo  >&2  "Error: HERO_TARGET_PATH environmental variables is missing!"
     RET=1
 fi
-if [ -z "${HERO_GCC_INSTALL_DIR}" ]; then
-    echo "Error: HERO_GCC_INSTALL_DIR environmental variables is missing!"
+if [ -z "${HERO_TOOLCHAIN_INSTALL_DIR}" ]; then
+    echo  >&2  "Error: HERO_TOOLCHAIN_INSTALL_DIR environmental variables is missing!"
     RET=1
 fi
 if [ "${RET}" -eq "0" ]; then
-    rsync -rctacvP ${HERO_GCC_INSTALL_DIR}/arm-linux-gnueabihf/lib/libgomp* ${HERO_TARGET_HOST}:${HERO_TARGET_PATH_LIB}/.
+    rsync -rctacvP ${HERO_TOOLCHAIN_INSTALL_DIR}/arm-linux-gnueabihf/lib/libgomp* ${HERO_TARGET_HOST}:${HERO_TARGET_PATH_LIB}/.
 fi
 
 exit $RET

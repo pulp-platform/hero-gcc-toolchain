@@ -1,15 +1,17 @@
 [submodule "src/binutils"]
 	path = src/binutils
 	url = https://github.com/pulp-platform/pulp-riscv-binutils-gdb.git
-	branch = master	
+	branch = hero-toolchain-release	
 	shallow = true
 [submodule "src/newlib"]
 	path = src/newlib
 	url = https://github.com/pulp-platform/pulp-riscv-newlib.git
-	branch = master
+	branch = hero-toolchain-release
 	shallow = true
 [submodule "src/riscv-gcc"]
 	path = src/riscv-gcc
 	url = https://github.com/pulp-platform/pulp-riscv-gcc.git
-	branch = hero-dev
+	branch = hero-toolchain-release
+	shallow = true
+[submodule "(remotes/origin/HEAD)"]
 	shallow = true

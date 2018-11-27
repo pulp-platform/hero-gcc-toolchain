@@ -15,8 +15,13 @@
 #
 # Authors: Alessandro Capotondi, University of Bologna (alessandro.capotondi@unibo.it)
 
-source ${HERO_TOOLCHAIN_DIR}/scripts/hero_arm_toolchain_env.sh
-source ${HERO_TOOLCHAIN_DIR}/scripts/hero_riscv32_toolchain_env.sh
+
+# Setup the envioronmental variables
+if [ -z "${HERO_TOOLCHAIN_DIR}" ]; then
+  echo >&2 "Error: missing environment variable HERO_TOOLCHAIN_DIR!"
+  exit 1
+fi
+source ${HERO_TOOLCHAIN_DIR}/env/hero_toolchain_env.sh
 
 get_submodules() {
     if [[ ! ${HERO_CI+x} ]]; then
@@ -28,7 +33,6 @@ get_submodules() {
             spath=$(git config -f .gitmodules --get submodule.$i.path)
             surl=$(git config -f .gitmodules --get submodule.$i.url)
             sbranch=$(git config -f .gitmodules --get submodule.$i.branch)
-            sha1=$(git rev-parse @:$spath)
             if [ -n "$(find "$spath" -maxdepth 0 -type d -empty 2>/dev/null)" ]; then
                 git clone --depth 1 $surl $spath -b $sbranch
             fi
@@ -38,29 +42,31 @@ get_submodules() {
 }
 
 get_sources() {
+    cd ${HERO_TOOLCHAIN_DIR}
+    
 	# Get submodules
 	get_submodules
 
 	# Get GCC prerequisites
-    cd ${HERO_ACCEL_GCC_SRC_DIR}
-    ${HERO_ACCEL_GCC_SRC_DIR}/contrib/download_prerequisites
+    cd ${HERO_TOOLCHAIN_GCC_SRC_DIR}
+    ${HERO_TOOLCHAIN_GCC_SRC_DIR}/contrib/download_prerequisites
     
 
     # Get Glibc for HOST
-    cd ${HERO_HOST_SRC_DIR} 
-    rm -rf $HERO_HOST_GLIBC
-    rm -rf $HERO_HOST_GLIBC.tar.xz
+    cd ${HERO_TOOLCHAIN_SRC_DIR} 
+    rm -rf $HERO_TOOLCHAIN_HOST_GLIBC
+    rm -rf $HERO_TOOLCHAIN_HOST_GLIBC.tar.xz
     {
-        wget --tries=1 --timeout=60 -nc http://mirror.switch.ch/ftp/mirror/gnu/glibc/$HERO_HOST_GLIBC.tar.xz
+        wget --tries=1 --timeout=60 -nc http://mirror.switch.ch/ftp/mirror/gnu/glibc/$HERO_TOOLCHAIN_HOST_GLIBC.tar.xz
     } || {
-        wget -nc https://ftp.gnu.org/gnu/glibc/$HERO_HOST_GLIBC.tar.xz
+        wget -nc https://ftp.gnu.org/gnu/glibc/$HERO_TOOLCHAIN_HOST_GLIBC.tar.xz
     }
     for f in *.tar*; do tar xfk $f; done
-    rm -rf $HERO_HOST_GLIBC.tar.xz
+    rm -rf $HERO_TOOLCHAIN_HOST_GLIBC.tar.xz
 }
 
 get_sources
 if [ $? -ne 0 ]; then
-	echo "ERROR: failed to get sources."
+	echo  >&2 "ERROR: failed to get sources."
     exit 1
 fi
